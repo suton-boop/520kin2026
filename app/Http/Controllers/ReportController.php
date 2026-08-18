@@ -5,39 +5,49 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Models\ReportSubmission;
+use App\Models\Project;
+use App\Models\Activity;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\ActivityExport;
+use App\Imports\ActivityImport;
 use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
-    public function index()
+        public function index()
     {
         $user = Auth::user();
-        $query = ReportSubmission::with(['period', 'activities', 'user.gugusMutu']);
+        
+        // Base Query for Activities
+        $query = Activity::with(['reportSubmission.period', 'reportSubmission.user.gugusMutu', 'reportSubmission.project']);
 
-        if ($user->hasRole(['admin', 'super-admin', 'superadmin'])) {
-            // Admin melihat semua
+        if ($user->hasRole(['admin', 'super-admin', 'superadmin']) || ($user->hasRole('manager') && empty($user->gugus_mutu_id))) {
+            // Admin melihat semua kegiatan
         } elseif ($user->hasAnyRole(['manager', 'staff', 'user', 'operator'])) {
-            if ($user->gugus_mutu_id) {
-                $query->whereHas('user', function($q) use ($user) {
+            if ($user->gugus_mutu_id && !($user->hasRole('manager') && empty($user->gugus_mutu_id))) {
+                $query->whereHas('reportSubmission.user', function($q) use ($user) {
                     $q->where('gugus_mutu_id', $user->gugus_mutu_id);
                 });
             } else {
-                $query->where('user_id', $user->id);
+                $query->whereHas('reportSubmission', function($q) use ($user) {
+                    $q->where('user_id', $user->id);
+                });
             }
         }
 
-        $reports = $query->orderBy('created_at', 'desc')->get();
+        $activities = $query->get()->sortByDesc(function($act) { return $act->reportSubmission ? $act->reportSubmission->created_at : $act->created_at; })->values();
         
         $allowImport = false;
-        if ($user->hasRole(['admin', 'super-admin', 'superadmin'])) {
+        $isGlobalManager = $user->hasRole('manager') && empty($user->gugus_mutu_id);
+        if ($user->hasRole(['admin', 'super-admin', 'superadmin']) || $isGlobalManager) {
             $allowImport = true;
         } elseif ($user->gugus_mutu_id) {
             $gm = \App\Models\GugusMutu::find($user->gugus_mutu_id);
             $allowImport = $gm ? (bool)$gm->allow_import : false;
         }
-                    
+
         return Inertia::render('Reports/Index', [
-            'reports' => $reports,
+            'activities' => $activities,
             'userRole' => $user->roles->pluck('name')->first(),
             'allowImport' => $allowImport,
         ]);
@@ -87,7 +97,8 @@ class ReportController extends Controller
             'report' => $report,
             'userRole' => $user->roles->pluck('name')->first(),
             'allowImport' => $allowImport,
-            'canEdit' => $canEdit, // Kirim flag ini ke UI
+            'canEdit' => $canEdit,
+            'projects' => Project::all(),
         ]);
     }
 
@@ -104,8 +115,8 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $report->update(['approval_status' => 'Pending_Manager']);
-        return back()->with('success', 'Perencanaan diajukan ke Manajer (Tahap 1).');
+        $report->update(['approval_status' => 'Pending']);
+        return back()->with('success', 'Perencanaan diajukan dan menunggu persetujuan.');
     }
 
     public function submitReport(Request $request, $id)
@@ -121,7 +132,141 @@ class ReportController extends Controller
             abort(403);
         }
 
-        $report->update(['approval_status' => 'Pending_Manager']);
-        return back()->with('success', 'Pelaporan Kinerja diajukan ke Manajer (Tahap 1).');
+        $report->update(['approval_status' => 'Pending']);
+        return back()->with('success', 'Pelaporan Kinerja diajukan dan menunggu persetujuan.');
+    }
+
+    public function pullFromSchedule(Request $request, $id)
+    {
+        $request->validate([
+            'project_id' => 'required|exists:projects,id',
+        ]);
+
+        $report = ReportSubmission::findOrFail($id);
+        $user = Auth::user();
+
+        // Security check
+        $isAdmin = $user->hasRole(['admin', 'super-admin', 'superadmin']);
+        $isOwner = $report->user_id === $user->id;
+        $isSameGM = ($user->gugus_mutu_id && $report->user->gugus_mutu_id === $user->gugus_mutu_id);
+
+        if (!$isAdmin && !$isOwner && !$isSameGM) {
+            abort(403, 'Anda tidak memiliki akses.');
+        }
+
+        if (!$report->project_id) {
+            $report->update(['project_id' => $request->project_id]);
+        }
+
+        $project = Project::with('tasks')->findOrFail($request->project_id);
+        
+        $count = 0;
+        foreach ($project->tasks as $task) {
+            if ($task->start_date) {
+                $endDate = date('Y-m-d', strtotime($task->start_date . ' + ' . $task->duration_days . ' days'));
+            } else {
+                $endDate = null;
+            }
+
+            Activity::create([
+                'report_submission_id' => $report->id,
+                'nama_kegiatan_turunan' => $task->name,
+                'rencana_start_date' => $task->start_date,
+                'rencana_end_date' => $endDate,
+                'deskripsi_kegiatan' => 'Ditarik otomatis dari Penjadwalan: ' . $project->name,
+                'status_akhir' => 'Belum',
+                'percent_complete' => $task->percent_complete,
+                'duration_days' => $task->duration_days,
+            ]);
+            $count++;
+        }
+
+        return back()->with('success', "Berhasil menarik $count kegiatan dari jadwal proyek.");
+    }
+
+    public function downloadTemplateExcel(Request $request, $id)
+    {
+        $request->validate([
+            'project_id' => 'required|exists:projects,id',
+        ]);
+        
+        $project = Project::findOrFail($request->project_id);
+        $fileName = 'Template_Laporan_' . str_replace(' ', '_', $project->name) . '.xlsx';
+
+        return Excel::download(new ActivityExport($project->id), $fileName);
+    }
+
+    public function importExcel(Request $request, $id)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:5120',
+        ]);
+
+        $report = ReportSubmission::findOrFail($id);
+        $user = Auth::user();
+
+        // Security check
+        $isAdmin = $user->hasRole(['admin', 'super-admin', 'superadmin']);
+        $isOwner = $report->user_id === $user->id;
+        $isSameGM = ($user->gugus_mutu_id && $report->user->gugus_mutu_id === $user->gugus_mutu_id);
+
+        if (!$isAdmin && !$isOwner && !$isSameGM) {
+            abort(403, 'Anda tidak memiliki akses.');
+        }
+
+        try {
+            Excel::import(new ActivityImport($report->id), $request->file('file'));
+            return back()->with('success', 'Data Excel berhasil diunggah dan diimpor!');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Gagal mengimpor: ' . $e->getMessage()]);
+        }
+    }
+
+    public function updateActivity(Request $request, $id, $activityId)
+    {
+        $request->validate([
+            'kendala' => 'nullable|string',
+            'mitigasi' => 'nullable|string',
+        ]);
+
+        $activity = Activity::findOrFail($activityId);
+        $activity->update([
+            'kendala' => $request->kendala,
+            'mitigasi' => $request->mitigasi,
+        ]);
+
+        return back()->with('success', 'Tindakan Mitigasi berhasil disimpan.');
+    }
+    public function export()
+    {
+        $user = Auth::user();
+        $query = Activity::with(['reportSubmission.user.gugusMutu', 'reportSubmission.period', 'reportSubmission.project']);
+
+        if ($user->hasRole(['admin', 'super-admin'])) {
+            // Admin sees all
+        } elseif ($user->hasRole('manager')) {
+            $query->whereHas('reportSubmission.user', function($q) use ($user) {
+                $q->where('gugus_mutu_id', $user->gugus_mutu_id);
+            });
+        } else {
+            $query->whereHas('reportSubmission', function($q) use ($user) {
+                $q->where('user_id', $user->id);
+            });
+        }
+
+        $activities = $query->get();
+        return \Excel::download(new \App\Exports\ReportsExport($activities), 'Daftar_Laporan.xlsx');
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+

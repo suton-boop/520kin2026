@@ -1,19 +1,44 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, router } from '@inertiajs/react';
+import { useState } from 'react';
 
 export default function Index({ auth, pending_approvals, userRole }) {
-    
+    const [selectedIds, setSelectedIds] = useState([]);
+
     const handleApprove = (id) => {
         if(confirm('Apakah Anda yakin ingin menyetujui pengajuan ini?')) {
-            const endpoint = (userRole === 'admin' || userRole === 'super-admin') ? `/approvals/${id}/approve-admin` : `/approvals/${id}/approve-manager`;
-            router.post(endpoint);
+            router.post('/approvals/' + id + '/approve');
         }
     };
 
     const handleReject = (id) => {
         const reason = prompt('Masukkan alasan penolakan untuk dikembalikan ke staf:');
         if (reason) {
-            router.post(`/approvals/${id}/reject`, { reason });
+            router.post('/approvals/' + id + '/reject', { reason });
+        }
+    };
+
+    const handleSelectAll = (e) => {
+        if (e.target.checked) {
+            setSelectedIds(pending_approvals.map(item => item.id));
+        } else {
+            setSelectedIds([]);
+        }
+    };
+
+    const handleSelect = (id) => {
+        if (selectedIds.includes(id)) {
+            setSelectedIds(selectedIds.filter(selectedId => selectedId !== id));
+        } else {
+            setSelectedIds([...selectedIds, id]);
+        }
+    };
+
+    const handleBulkApprove = () => {
+        if(confirm('Apakah Anda yakin ingin menyetujui ' + selectedIds.length + ' laporan sekaligus?')) {
+            router.post('/approvals/bulk-approve', { submission_ids: selectedIds }, {
+                onSuccess: () => setSelectedIds([])
+            });
         }
     };
 
@@ -24,8 +49,20 @@ export default function Index({ auth, pending_approvals, userRole }) {
         >
             <Head title="Approval" />
 
-            <div className="py-12">
+            <div className="py-12 relative">
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
+
+                    {selectedIds.length > 0 && (
+                        <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200 flex justify-between items-center shadow-sm">
+                            <span className="text-blue-800 font-medium">{selectedIds.length} Laporan dipilih</span>
+                            <button 
+                                onClick={handleBulkApprove} 
+                                className="px-4 py-2 bg-blue-600 text-white font-bold rounded shadow hover:bg-blue-700 transition-colors"
+                            >
+                                Setujui Semua yang Dipilih
+                            </button>
+                        </div>
+                    )}
 
                     <div className="overflow-hidden bg-white shadow-sm sm:rounded-lg">
                         <div className="p-6 text-gray-900 border-b border-gray-200">
@@ -34,6 +71,14 @@ export default function Index({ auth, pending_approvals, userRole }) {
                             <table className="min-w-full divide-y divide-gray-200">
                                 <thead className="bg-gray-50">
                                     <tr>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                            <input 
+                                                type="checkbox" 
+                                                className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                                onChange={handleSelectAll}
+                                                checked={pending_approvals?.length > 0 && selectedIds.length === pending_approvals.length}
+                                            />
+                                        </th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Staf</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gugus Mutu</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
@@ -44,7 +89,15 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {pending_approvals?.length > 0 ? (
                                         pending_approvals.map((item) => (
-                                            <tr key={item.id}>
+                                            <tr key={item.id} className={selectedIds.includes(item.id) ? "bg-blue-50/30" : ""}>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <input 
+                                                        type="checkbox" 
+                                                        className="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
+                                                        onChange={() => handleSelect(item.id)}
+                                                        checked={selectedIds.includes(item.id)}
+                                                    />
+                                                </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{item.user?.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">{item.user?.gugus_mutu?.name}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-700">{item.period?.month_year}</td>
@@ -54,11 +107,10 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
-                                                    {(item.approval_status === 'Pending_Manager' && userRole === 'manager') || 
-                                                     (item.approval_status === 'Pending_Admin' && (userRole === 'admin' || userRole === 'super-admin')) ? (
+                                                    {item.approval_status === 'Pending' ? (
                                                         <>
-                                                            <button onClick={() => handleApprove(item.id)} className="px-3 py-1 bg-green-500 text-white rounded shadow hover:bg-green-600 transition-colors">Teruskan (Setuju)</button>
-                                                            <button onClick={() => handleReject(item.id)} className="px-3 py-1 bg-red-500 text-white rounded shadow hover:bg-red-600 transition-colors">Tolak (Kembalikan)</button>
+                                                            <button onClick={() => handleApprove(item.id)} className="px-3 py-1 bg-green-500 text-white rounded shadow hover:bg-green-600 transition-colors">Setuju</button>
+                                                            <button onClick={() => handleReject(item.id)} className="px-3 py-1 bg-red-500 text-white rounded shadow hover:bg-red-600 transition-colors">Tolak</button>
                                                         </>
                                                     ) : (
                                                         <span className="text-gray-400 italic">Sudah direview</span>
@@ -68,7 +120,7 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="5" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
+                                            <td colSpan="6" className="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">
                                                 Tidak ada pengajuan yang menunggu persetujuan Anda saat ini.
                                             </td>
                                         </tr>
@@ -82,3 +134,4 @@ export default function Index({ auth, pending_approvals, userRole }) {
         </AuthenticatedLayout>
     );
 }
+

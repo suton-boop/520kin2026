@@ -46,7 +46,7 @@ class ProgramImport implements ToCollection, WithStartRow
             $mekanisme = $row[4] ?? '';
             
             // JIKA BARIS JUDUL PROGRAM (A. atau D. atau E)
-            if (preg_match('/^[A-Z](\.)?$/i', $kode) || preg_match('/^[A-Z]\./i', $kode)) {
+            if (preg_match('/^[A-Z](\.)?$/i', $kode) || preg_match('/^[A-Z]\./i', $kode) || preg_match('/^\d+$/', $kode)) {
                 $this->currentProgram = $kegiatan;
                 continue;
             }

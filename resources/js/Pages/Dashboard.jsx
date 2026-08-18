@@ -8,6 +8,47 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
     
     const [activeMainTab, setActiveMainTab] = useState('Kinerja');
     const [activeSubTab, setActiveSubTab] = useState('Rincian Task');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 10;
+
+    const handleSubTabChange = (t) => {
+        setActiveSubTab(t);
+        setCurrentPage(1);
+    };
+
+    let currentData = [];
+    if (activeSubTab === 'Rincian Task' || activeSubTab === 'Milestone') currentData = activities || [];
+    else if (activeSubTab === 'Task Terlambat') currentData = lateTasks || [];
+    else if (activeSubTab === 'Risiko & Isu') currentData = (activities || []).filter(a => a.kendala);
+    else if (activeSubTab === 'Ang Invalid') currentData = invalidBudgets || [];
+
+    const totalPages = Math.ceil(currentData.length / itemsPerPage);
+    const paginatedData = currentData.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+    const renderPagination = () => {
+        if (totalPages <= 1) return null;
+        return (
+            <div className="flex justify-center items-center gap-4 mt-6 p-4">
+                <button 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 font-bold text-xs uppercase"
+                >
+                    Prev
+                </button>
+                <span className="text-xs font-black text-gray-400">
+                    Halaman {currentPage} dari {totalPages}
+                </span>
+                <button 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="px-4 py-2 bg-gray-100 text-gray-600 rounded-lg disabled:opacity-50 font-bold text-xs uppercase"
+                >
+                    Next
+                </button>
+            </div>
+        );
+    };
 
     const brandColor = '#FBBF24';
     const realisasiColor = '#9CA3AF';
@@ -101,7 +142,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                 <div className="bg-white p-6 md:p-12 rounded-[40px] shadow-sm border border-gray-100 flex flex-col mt-12 bg-gradient-to-b from-white to-gray-50/30 overflow-x-auto">
                     <div className="flex space-x-3 md:space-x-6 mb-16 bg-gray-100 p-2.5 rounded-full w-max mx-auto shadow-inner border border-gray-200 min-w-max">
                         {['Rincian Task', 'Milestone', 'Task Terlambat', 'Risiko & Isu', 'Ang Invalid'].map(t => (
-                            <button key={t} onClick={() => setActiveSubTab(t)} className={`px-8 md:px-12 py-5 rounded-full text-[11px] font-black transition-all ${activeSubTab === t ? 'bg-blue-900 text-white shadow-2xl scale-110 border border-blue-950 px-10' : 'text-gray-400 hover:text-blue-900 hover:bg-white'}`}>
+                            <button key={t} onClick={() => handleSubTabChange(t)} className={`px-8 md:px-12 py-5 rounded-full text-[11px] font-black transition-all ${activeSubTab === t ? 'bg-blue-900 text-white shadow-2xl scale-110 border border-blue-950 px-10' : 'text-gray-400 hover:text-blue-900 hover:bg-white'}`}>
                                 {t.toUpperCase()}
                             </button>
                         ))}
@@ -113,7 +154,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                 <table className="w-full text-left border-collapse bg-white">
                                     <thead>
                                         <tr className="bg-blue-900 text-white border-b border-blue-950 text-[10px] font-black uppercase tracking-widest italic">
-                                            <th className="px-8 py-5 border-r border-blue-800">KODE PMO</th>
+                                            <th className="px-8 py-5 border-r border-blue-800">DIVISI / GM</th>
                                             <th className="px-8 py-5 border-r border-blue-800">DESKRIPSI & INDIKATOR KINERJA</th>
                                             <th className="px-8 py-5 border-r border-blue-800 text-center">RENCANA</th>
                                             <th className="px-8 py-5 border-r border-blue-800 text-center">REALISASI</th>
@@ -121,9 +162,9 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                         </tr>
                                     </thead>
                                     <tbody className="text-[11px] font-bold">
-                                        {activities?.map(act => (
+                                        {paginatedData.map(act => (
                                             <tr key={act.id} className="border-b border-gray-100 hover:bg-blue-50/30 transition-all group">
-                                                <td className="px-8 py-8 font-mono text-blue-900 text-xs tracking-tighter align-top border-r border-gray-50 italic">'{act.kode_pmo}</td>
+                                                <td className="px-8 py-8 font-black text-blue-800 align-top text-xs border-r border-gray-50 uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                 <td className="px-8 py-8 align-top border-r border-gray-50">
                                                     <div className="space-y-2">
                                                         <p className="font-black text-gray-900 text-[13px] leading-snug uppercase tracking-tight group-hover:text-blue-700">{act.nama_kegiatan_turunan}</p>
@@ -158,19 +199,20 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                         ))}
                                     </tbody>
                                 </table>
+                                {renderPagination()}
                              </div>
                         )}
 
                         {activeSubTab === 'Milestone' && (
                              <div className="overflow-x-auto rounded-[32px] border border-blue-50 shadow-sm bg-white p-4">
                                  <div className="flex min-w-max bg-blue-900 text-white rounded-t-[20px] shadow-lg">
-                                     <div className="w-48 flex-shrink-0 p-5 border-r border-blue-800 font-black text-[10px] uppercase tracking-widest italic">ITEM PMO</div>
+                                     <div className="w-48 flex-shrink-0 p-5 border-r border-blue-800 font-black text-[10px] uppercase tracking-widest italic">DIVISI / GM</div>
                                      {['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'].map(m => (
                                          <div key={m} className="w-28 border-r border-blue-800 text-center p-5 text-[10px] font-black uppercase tracking-widest italic">{m}</div>
                                      ))}
                                  </div>
                                  <div className="space-y-4 p-4 min-w-max">
-                                     {activities?.map((act) => {
+                                     {paginatedData.map((act) => {
                                          let startMonth = 1; let endMonth = 12;
                                          if (act.rencana_start_date) startMonth = new Date(act.rencana_start_date).getMonth() + 1;
                                          if (act.rencana_end_date) endMonth = new Date(act.rencana_end_date).getMonth() + 1;
@@ -178,7 +220,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                          
                                          return (
                                              <div key={act.id} className="flex h-12 items-center bg-gray-50/50 rounded-2xl border border-gray-100 group hover:bg-amber-50/50 transition-all">
-                                                 <div className="w-44 flex-shrink-0 text-[10px] font-black px-6 text-blue-900 uppercase italic">'{act.kode_pmo}</div>
+                                                 <div className="w-44 flex-shrink-0 text-[10px] font-black px-6 text-blue-900 uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</div>
                                                  <div className="flex-1 relative h-6 mr-4">
                                                      <div className="absolute h-6 rounded-full bg-blue-600 shadow-xl top-0 border-2 border-white group-hover:bg-blue-700 transition-all" style={{ left: marginLeft + 'px', width: width + 'px' }}>
                                                          <div className="flex items-center justify-center h-full text-[8px] font-black text-white uppercase italic tracking-widest opacity-30 group-hover:opacity-100">PROG: {act.kode_pmo}</div>
@@ -188,6 +230,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                          );
                                      })}
                                  </div>
+                                 {renderPagination()}
                              </div>
                         )}
 
@@ -196,15 +239,15 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                  <table className="w-full text-left border-collapse bg-white">
                                      <thead>
                                          <tr className="bg-red-600 text-white uppercase font-black text-[11px] border-b border-red-700 tracking-widest italic">
-                                             <th className="px-10 py-6 w-40">KODE PMO</th>
+                                             <th className="px-10 py-6 w-48">DIVISI / GM</th>
                                              <th className="px-10 py-6">RINCIAN KEGIATAN TERHUBUNG KERLALUI (LATE)</th>
                                              <th className="px-10 py-6 text-center">TENGGAT AKHIR</th>
                                          </tr>
                                      </thead>
                                      <tbody>
-                                         {lateTasks?.length > 0 ? lateTasks.map(task => (
+                                         {paginatedData.length > 0 ? paginatedData.map(task => (
                                              <tr key={task.id} className="border-b border-red-50 hover:bg-red-50/50 transition-all">
-                                                 <td className="px-10 py-10 font-mono font-black text-red-600 text-xs">'{task.kode_pmo}</td>
+                                                 <td className="px-10 py-10 font-black text-red-800 align-top text-xs uppercase">{task.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                  <td className="px-10 py-10">
                                                      <p className="font-extrabold text-gray-900 text-[14px] mb-3 uppercase tracking-tighter">{task.nama_kegiatan_turunan}</p>
                                                      <div className="flex items-center space-x-3">
@@ -230,16 +273,16 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                              <div className="rounded-[40px] border border-amber-100 bg-amber-50/20 overflow-hidden shadow-xl border-t-8 border-t-amber-400">
                                   <table className="w-full text-left border-collapse">
                                       <thead>
-                                          <tr className="bg-amber-400 text-gray-900 uppercase font-black text-[11px] border-b border-amber-500 tracking-widest italic">
-                                              <th className="px-10 py-6 w-40 border-r border-amber-500/20">PKODETP</th>
-                                              <th className="px-10 py-6 border-r border-amber-500/20">ANALISIS RISIKO & ISU</th>
-                                              <th className="px-10 py-6">STRATEGI MITIGASI / RTL</th>
+                                          <tr className="bg-amber-500 text-white uppercase font-black text-[12px] border-b border-amber-600 tracking-widest italic">
+                                              <th className="px-10 py-6 w-48">DIVISI / GM</th>
+                                              <th className="px-10 py-6">URAIAN KEGIATAN & ISU / RISIKO</th>
+                                              <th className="px-10 py-6">MITIGASI PROAKTIF</th>
                                           </tr>
                                       </thead>
                                       <tbody className="bg-white">
-                                          {activities?.filter(a => a.resiko_isu).length > 0 ? activities.filter(a => a.resiko_isu).map(act => (
+                                          {paginatedData.length > 0 ? paginatedData.map(act => (
                                               <tr key={act.id} className="border-b border-amber-50 hover:bg-amber-100/10 transition-all">
-                                                  <td className="px-10 py-10 font-mono font-black text-amber-700 align-top text-xs border-r border-amber-50 italic">'{act.kode_pmo}</td>
+                                                  <td className="px-10 py-10 font-black text-amber-800 align-top text-xs border-r border-amber-50 uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                   <td className="px-10 py-10 align-top border-r border-gray-50">
                                                       <div className="flex items-start">
                                                           <div className="bg-red-500/10 p-3 rounded-2xl mr-5 shadow-inner"><ExclamationTriangleIcon className="h-5 w-5 text-red-600" /></div>
@@ -268,6 +311,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                           )}
                                       </tbody>
                                   </table>
+                                  {renderPagination()}
                              </div>
                         )}
 
@@ -276,14 +320,14 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                   <table className="w-full text-left border-collapse">
                                       <thead>
                                           <tr className="bg-red-600 text-white uppercase font-black text-[12px] border-b border-red-700 tracking-widest italic">
-                                              <th className="px-10 py-8 w-44">KODE PMO</th>
+                                              <th className="px-10 py-8 w-48">DIVISI / GM</th>
                                               <th className="px-10 py-8">RINCIAN DATA ANGGARAN TIDAK VALID</th>
                                               <th className="px-10 py-8 text-center">ALOKASI VS REALITA</th>
                                               <th className="px-10 py-8 text-center">STATUS KESALAHAN</th>
                                           </tr>
                                       </thead>
                                       <tbody>
-                                          {invalidBudgets?.length > 0 ? invalidBudgets.map(act => {
+                                          {paginatedData.length > 0 ? paginatedData.map(act => {
                                               const alokasi = act.budget ? floatval(act.budget.anggaran_alokasi) : 0;
                                               const realisasi = act.budget ? floatval(act.budget.anggaran_realisasi) : 0;
                                               const isOver = realisasi > alokasi && alokasi > 0;
@@ -291,7 +335,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
 
                                               return (
                                                   <tr key={act.id} className="border-b border-red-50 hover:bg-red-100/10 transition-all">
-                                                      <td className="px-10 py-12 font-mono font-black text-red-600 align-top text-sm">'{act.kode_pmo}</td>
+                                                      <td className="px-10 py-12 font-black text-red-800 align-top text-sm uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                       <td className="px-10 py-12 align-top">
                                                           <p className="font-black text-blue-900 text-[16px] mb-4 uppercase leading-none tracking-tight italic drop-shadow-sm">{act.nama_kegiatan_turunan}</p>
                                                           <div className="flex items-center text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/80 p-3 rounded-2xl w-max border border-gray-100">
@@ -318,6 +362,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                           )}
                                       </tbody>
                                   </table>
+                                  {renderPagination()}
                              </div>
                         )}
                     </div>
@@ -332,3 +377,4 @@ function floatval(val) {
     if (typeof val === 'string') return parseFloat(val.replace(/[^0-9.-]+/g, "")) || 0;
     return parseFloat(val) || 0;
 }
+

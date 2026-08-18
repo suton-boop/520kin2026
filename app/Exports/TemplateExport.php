@@ -17,18 +17,18 @@ class TemplateExport implements FromCollection, WithHeadings, WithTitle
     public function headings(): array
     {
         return [
-            'KODE PMO', 
-            'NAMA KEGIATAN', 
-            'INDIKATOR KINERJA', 
-            'HASIL KEGIATAN', 
-            'MEKANISME', 
-            'EMPTY', 
-            'PESERTA SASARAN', 
-            'TEMPAT KEGIATAN', 
-            'ANGGARAN', 
-            'RENCANA MULAI', 
-            'RENCANA SELESAI', 
-            'KELOMPOK KERJA'
+            'WBS', 
+            'Task Name (Nama Kegiatan)', 
+            'Indikator Kinerja', 
+            'Hasil Kegiatan', 
+            'Mekanisme', 
+            '-', 
+            'Peserta Sasaran', 
+            'Tempat', 
+            'Anggaran', 
+            'Bulan (Rencana Mulai)', 
+            'Bulan (Rencana Selesai)', 
+            'Gugus Mutu'
         ];
     }
 
@@ -36,18 +36,24 @@ class TemplateExport implements FromCollection, WithHeadings, WithTitle
     {
         return new Collection([
             [
+                '1', 
+                'PDM-01', 
+                '', '', '', '', '', '', '', '', '', ''
+            ],
+            [
                 '1.1', 
-                'Contoh Kegiatan SD', 
-                'Indikator Target', 
-                'Hasil Laporan', 
-                'Workshop', 
-                '', 
-                'GURU', 
-                'JAKARTA', 
-                'Rp 10.000.000', 
-                'Januari', 
-                'Februari', 
-                'SD'
+                '[PDM-01-1] 100% satuan pendidikan pelaksana PSP mengalami peningkatan kualitas transformasi satdik (a&b)', 
+                '', '', '', '', '', '', '', '', '', ''
+            ],
+            [
+                '1.1.1', 
+                'Percepatan Transformasi Sekolah Pelaksana Program Sekolah Penggerak', 
+                '', '', '', '', '', '', '', '', '', ''
+            ],
+            [
+                '1.1.1.1', 
+                'Koordinasi Percepatan Transformasi Satuan Pendidikan Sekolah Pelaksana PSP dengan PMO Daerah', 
+                'Jumlah sekolah sasaran', 'Dokumen Laporan', 'Rapat', '', 'Pengawas', 'Dinas Pendidikan', '25000000', 'Februari', 'Maret', 'GM-01'
             ]
         ]);
     }

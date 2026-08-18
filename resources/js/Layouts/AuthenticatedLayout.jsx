@@ -1,5 +1,5 @@
 import ApplicationLogo from '@/Components/ApplicationLogo';
-import { HomeIcon, BriefcaseIcon, CurrencyDollarIcon, UserGroupIcon, AcademicCapIcon, CheckCircleIcon, XCircleIcon } from '@heroicons/react/24/solid';
+import { HomeIcon, BriefcaseIcon, CurrencyDollarIcon, UserGroupIcon, AcademicCapIcon, CheckCircleIcon, XCircleIcon, Cog6ToothIcon } from '@heroicons/react/24/solid';
 import { Link, usePage } from '@inertiajs/react';
 import { useState, useEffect } from 'react';
 
@@ -13,10 +13,15 @@ export default function AuthenticatedLayout({ children }) {
 
     const navigation = [
         { name: 'Home', href: route('dashboard'), icon: HomeIcon, active: route().current('dashboard') },
-        { name: 'Project', href: route('reports.index'), icon: BriefcaseIcon, active: route().current('reports.*') },
+        { name: 'Perencanaan Project', href: route('projects.index'), icon: BriefcaseIcon, active: route().current('projects.*') },
+        { name: 'Laporan Project', href: route('reports.index'), icon: BriefcaseIcon, active: route().current('reports.*') },
         { name: 'Gugus Mutu', href: route('gugus-mutu-report.index'), icon: AcademicCapIcon, active: route().current('gugus-mutu-report.*') },
         { name: 'Anggaran', href: route('anggaran'), icon: CurrencyDollarIcon, active: route().current('anggaran') },
-        ...(isAdmin ? [{ name: 'Users', href: route('users.index'), icon: UserGroupIcon, active: route().current('users.*') }] : [])
+        ...(isAdmin ? [
+            { name: 'Users', href: route('users.index'), icon: UserGroupIcon, active: route().current('users.*') },
+            { name: 'Master Devisi', href: route('gugus-mutus.index'), icon: AcademicCapIcon, active: route().current('gugus-mutus.*') },
+            { name: 'Settings', href: route('settings.index'), icon: Cog6ToothIcon, active: route().current('settings.*') }
+        ] : [])
     ];
 
     useEffect(() => {
@@ -88,3 +93,5 @@ export default function AuthenticatedLayout({ children }) {
         </div>
     );
 }
+
+

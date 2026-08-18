@@ -156,3 +156,4 @@ export default function Index({ reportData, periods, selectedPeriodId }) {
         </AuthenticatedLayout>
     );
 }
+

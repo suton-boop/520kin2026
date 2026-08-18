@@ -30,13 +30,13 @@ class DummyDataSeeder extends Seeder
             ['email' => 'user_it@user.com'],
             ['name' => 'Pegawai IT', 'password' => Hash::make('password'), 'gugus_mutu_id' => $gugusIT->id]
         );
-        $userIT->assignRole('user');
+        $userIT->assignRole('staff');
 
         $userHR = User::firstOrCreate(
             ['email' => 'user_hr@user.com'],
             ['name' => 'Pegawai HR', 'password' => Hash::make('password'), 'gugus_mutu_id' => $gugusHR->id]
         );
-        $userHR->assignRole('user');
+        $userHR->assignRole('staff');
 
         // Update Manager exist untuk memegang salah satu gugus (Opsional)
         $manager = User::where('email', 'manager@manager.com')->first();

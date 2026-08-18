@@ -10,7 +10,7 @@ class Activity extends Model
     use HasFactory;
 
     protected $fillable = [
-        'report_submission_id',
+        'report_submission_id', 'project_task_id',
         'kode_pmo',
         'kode_rrkl',
         'jumlah_target',
@@ -32,6 +32,10 @@ class Activity extends Model
         'realisasi_end_date',
         'laporan',
                         'status_akhir',
+        'kendala',
+        'mitigasi',
+        'percent_complete',
+        'duration_days',
     ];
 
     /**
@@ -55,6 +59,11 @@ class Activity extends Model
     public function getStartDateAttribute() { return $this->rencana_start_date; }
     public function getEndDateAttribute() { return $this->rencana_end_date; }
 
+    public function projectTask()
+    {
+        return $this->belongsTo(ProjectTask::class, 'project_task_id');
+    }
+
     public function reportSubmission()
     {
         return $this->belongsTo(ReportSubmission::class);
@@ -65,3 +74,4 @@ class Activity extends Model
         return $this->belongsTo(Anggaran::class, 'kode_rrkl', 'kode');
     }
 }
+

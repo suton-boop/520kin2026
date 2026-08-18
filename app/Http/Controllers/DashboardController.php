@@ -64,26 +64,45 @@ class DashboardController extends Controller
             return ($realisasi > $alokasi) || ($alokasi <= 0);
         })->values();
 
-        // Monthly Performance Stats
+        // Monthly Performance Stats (Cumulative: Target from Perencanaan, Realisasi from Pelaporan)
         $months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
         $monthlyStats = [];
+        
+        // Target: Ambil murni dari Master Perencanaan (ProjectTask)
+        $projectTaskQuery = \App\Models\ProjectTask::whereHas('project', function($q) use ($year) {
+            // Optional: filter project active year if needed
+        })->where(function($q) use ($year) {
+            $q->whereYear('finish_date', $year)->orWhereYear('start_date', $year);
+        });
+
+        if ($user && $user->hasRole(['manager', 'staff', 'user']) && $user->gugus_mutu_id && !($user->hasRole('manager') && empty($user->gugus_mutu_id))) {
+            $projectTaskQuery->whereHas('project', function($q) use ($user) {
+                $q->where('gugus_mutu_id', $user->gugus_mutu_id);
+            });
+        }
+        
+        $allProjectTasks = $projectTaskQuery->get();
+        $totalYearProjectTasks = $allProjectTasks->count() > 0 ? $allProjectTasks->count() : 1;
+
         foreach ($months as $index => $m) {
             $monthNum = $index + 1;
             $monthDate = Carbon::create($year, $monthNum, 1)->endOfMonth();
-            $target = $monthDate->year == $year && $monthNum <= 4 ? 100 : ($monthNum >= 11 ? 100 : 0);
             
-            $totalPlanned = $allActivities->filter(function($act) use ($monthDate) {
-                 return Carbon::parse($act->rencana_start_date)->startOfMonth() <= $monthDate;
+            $cumulativePlanned = $allProjectTasks->filter(function($task) use ($monthDate) {
+                 return !empty($task->finish_date) && Carbon::parse($task->finish_date) <= $monthDate;
             })->count();
 
-            $totalFinished = $allActivities->filter(function($act) use ($monthDate) {
+            $cumulativeFinished = $allActivities->filter(function($act) use ($monthDate) {
                 return !empty($act->realisasi_end_date) && Carbon::parse($act->realisasi_end_date) <= $monthDate;
             })->count();
+
+            $target = round(($cumulativePlanned / $totalYearProjectTasks) * 100);
+            $realisasi = round(($cumulativeFinished / $totalYearProjectTasks) * 100);
 
             $monthlyStats[] = [
                 'name' => $m,
                 'target' => $target,
-                'realisasi' => $totalPlanned > 0 ? round(($totalFinished / $totalPlanned) * 100) : 0,
+                'realisasi' => $realisasi,
             ];
         }
 
@@ -127,3 +146,8 @@ class DashboardController extends Controller
         ]);
     }
 }
+
+
+
+
+

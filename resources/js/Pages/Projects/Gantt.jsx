@@ -1,0 +1,152 @@
+import React, { useEffect, useRef, useState } from 'react';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import { Head, useForm } from '@inertiajs/react';
+import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
+import gantt from 'dhtmlx-gantt';
+
+export default function Gantt({ project }) {
+    const ganttContainer = useRef(null);
+    const [showImportModal, setShowImportModal] = useState(false);
+    const { data, setData, post, processing, errors, reset } = useForm({ file: null });
+
+    const handleImportSubmit = (e) => {
+        e.preventDefault();
+        post(route('projects.tasks.import', project.id), {
+            onSuccess: () => {
+                setShowImportModal(false);
+                reset('file');
+                gantt.clearAll();
+                gantt.load("/projects/" + project.id + "/gantt-data");
+            }
+        });
+    };
+
+    useEffect(() => {
+        gantt.config.date_format = "%Y-%m-%d %H:%i:%s";
+        gantt.config.auto_scheduling = true;
+        gantt.config.auto_scheduling_strict = true;
+        gantt.config.work_time = true;
+
+        gantt.config.columns = [
+            {name: "wbs_code", label: "WBS", width: 60, template: function(task){ return task.wbs_code || gantt.getWBSCode(task); }},
+            {name: "text", label: "Task Name", tree: true, width: 200, resize: true},
+            {name: "start_date", label: "Start", align: "center", width: 90, resize: true},
+            {name: "duration", label: "Durasi", align: "center", width: 60},
+            {name: "add", label: "", width: 44},
+            {name: "buttons", label: "Aksi", width: 90, template: function(task) {
+                return '<button class="edit-btn" style="color:blue; font-size:12px; font-weight:bold; margin-right:8px;" data-action="edit">Edit</button>' +
+                       '<button class="del-btn" style="color:red; font-size:12px; font-weight:bold;" data-action="delete">Del</button>';
+            }}
+        ];
+
+        gantt.attachEvent("onTaskClick", function(id, e){
+            var button = e.target.closest("[data-action]");
+            if(button){
+                var action = button.getAttribute("data-action");
+                if(action === "edit"){
+                    gantt.showLightbox(id);
+                    return false;
+                }
+                if(action === "delete"){
+                    gantt.confirm({
+                        text: "Hapus task ini?",
+                        ok: "Ya",
+                        cancel: "Batal",
+                        callback: function(result){
+                            if(result){
+                                gantt.deleteTask(id);
+                            }
+                        }
+                    });
+                    return false;
+                }
+            }
+            return true;
+        });
+
+        gantt.init(ganttContainer.current);
+        
+        // Load data from backend
+        gantt.load("/projects/" + project.id + "/gantt-data");
+
+        // Setup DataProcessor to sync with Laravel backend
+        const dp = gantt.createDataProcessor({
+            url: "/projects/" + project.id,
+            mode: "REST",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            }
+        });
+
+        return () => {
+            dp.destructor();
+            gantt.clearAll();
+        };
+    }, [project.id]);
+
+    return (
+        <AuthenticatedLayout>
+            <Head title={`Gantt - ${project.name}`} />
+            <div className="h-screen w-full flex flex-col bg-white">
+                <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
+                    <h2 className="text-xl font-bold text-gray-800">Perencanaan Project: ${project.name}</h2>
+                    <div className="space-x-2">
+                        <a href={route('projects.index')} className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 font-semibold inline-block">&larr; Kembali</a>
+                          <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200 font-semibold" onClick={() => gantt.createTask()}>+ Tambah WBS/Task</button>
+                        <button className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm hover:bg-green-200 font-semibold" onClick={() => setShowImportModal(true)}>Import Excel</button>
+                        <button className="px-3 py-1 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300" onClick={() => gantt.autoSchedule()}>Auto Schedule</button>
+                    </div>
+                </div>
+                <div 
+                    ref={ganttContainer} 
+                    className="flex-1 w-full"
+                    style={{ minHeight: '600px' }}
+                ></div>
+            </div>
+        
+            {showImportModal && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+                    <div className="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                        <h3 className="text-lg font-medium text-gray-900 mb-4">Import Data Perencanaan (Excel)</h3>
+                        <form onSubmit={handleImportSubmit}>
+                            <div className="mb-4">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Pilih file Excel MS Project (.xlsx)</label>
+                                <input
+                                    type="file"
+                                    accept=".xlsx,.xls,.csv"
+                                    onChange={(e) => setData('file', e.target.files[0])}
+                                    className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                                />
+                                {errors.file && <div className="text-red-500 text-sm mt-1">{errors.file}</div>}
+                            </div>
+                            <div className="flex justify-between items-center mt-2">
+                                <a href="/users/export-template" className="text-sm text-indigo-600 hover:text-indigo-800 underline font-medium" target="_blank" download>
+                                    Download Template
+                                </a>
+                                <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setShowImportModal(false); reset(); }}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                                >
+                                    {processing ? 'Mengimpor...' : 'Import'}
+                                </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+        </AuthenticatedLayout>
+    );
+}
+
+
+

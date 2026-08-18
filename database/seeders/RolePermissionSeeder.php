@@ -21,10 +21,33 @@ class RolePermissionSeeder extends Seeder
         // Reset cached roles and permissions
         app()[\Spatie\Permission\PermissionRegistrar::class]->forgetCachedPermissions();
 
+        // Data Permissions berdasarkan sistem yang ada
+        $permissions = [
+            ['name' => 'dashboard-read', 'label' => 'Lihat Dashboard', 'group_name' => 'Dashboard'],
+            ['name' => 'anggaran-manage', 'label' => 'Kelola Anggaran', 'group_name' => 'Anggaran'],
+            ['name' => 'laporan-manage', 'label' => 'Kelola Laporan', 'group_name' => 'Laporan'],
+            ['name' => 'aktivitas-manage', 'label' => 'Kelola Aktivitas', 'group_name' => 'Aktivitas'],
+            ['name' => 'gugus-mutu-manage', 'label' => 'Kelola Gugus Mutu', 'group_name' => 'Gugus Mutu'],
+            ['name' => 'user-manage', 'label' => 'Kelola User', 'group_name' => 'Manajemen Sistem'],
+            ['name' => 'role-manage', 'label' => 'Kelola Role', 'group_name' => 'Manajemen Sistem'],
+            ['name' => 'permission-manage', 'label' => 'Kelola Permission', 'group_name' => 'Manajemen Sistem'],
+            ['name' => 'setting-manage', 'label' => 'Kelola Pengaturan', 'group_name' => 'Manajemen Sistem'],
+        ];
+
+        foreach ($permissions as $perm) {
+            Permission::firstOrCreate(
+                ['name' => $perm['name']],
+                ['label' => $perm['label'], 'group_name' => $perm['group_name']]
+            );
+        }
+
         // 1. Buat Role Baku
         $roleStaff = Role::firstOrCreate(['name' => 'staff']);
         $roleManager = Role::firstOrCreate(['name' => 'manager']);
         $roleAdmin = Role::firstOrCreate(['name' => 'admin']);
+
+        // Beri semua permission ke admin
+        $roleAdmin->syncPermissions(Permission::all());
 
         // 2. Gugus Mutu Ensure
         $gugusPaud = GugusMutu::firstOrCreate(['name' => 'GM1- PAUD']);

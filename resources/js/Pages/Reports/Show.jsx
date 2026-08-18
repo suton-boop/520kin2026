@@ -1,440 +1,323 @@
+import React, { useState } from "react";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
-import { Head, useForm, usePage, router, Link } from "@inertiajs/react";
-import { useState, useMemo } from "react";
-import {
-  PlusIcon,
-  PencilSquareIcon,
-  TrashIcon,
-  DocumentArrowUpIcon,
-  ChevronDoubleRightIcon,
-  ChevronDoubleLeftIcon,
-  CloudArrowUpIcon,
-  DocumentArrowDownIcon,
-  BugAntIcon,
-} from "@heroicons/react/24/solid";
+import { Head, Link, useForm } from "@inertiajs/react";
+import { ArrowLeftIcon, ExclamationTriangleIcon, CheckCircleIcon, ChartBarIcon, PencilSquareIcon } from "@heroicons/react/24/outline";
+import Modal from '@/Components/Modal';
 
-export default function Show({ auth, report, userRole, allowImport, canEdit }) {
-  const {
-    data,
-    setData,
-    post,
-    put,
-    delete: destroy,
-    reset,
-    errors,
-    clearErrors,
-  } = useForm({
-    task_name: "",
-    description: "",
-    target_count: "",
-    target_unit: "dokumen",
-    start_date: "",
-    end_date: "",
-    rkkl_code: "",
-    id: null,
+export default function Show({ report, userRole, allowImport, canEdit, projects }) {
+  
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showUpdateModal, setShowUpdateModal] = useState(false);
+  const [selectedActivity, setSelectedActivity] = useState(null);
+
+  const { data: importData, setData: setImportData, post: postImport, processing: importProcessing, errors: importErrors } = useForm({
+      file: null
   });
 
-  const {
-      data: importData,
-      setData: setImportData,
-      post: postImport,
-      processing: importProcessing,
-      reset: resetImport,
-  } = useForm({
-      file: null,
-      report_id: report.id,
+  const { data: updateData, setData: setUpdateData, put: putUpdate, processing: updateProcessing, reset: resetUpdate } = useForm({
+      realisasi_end_date: '',
+      status_akhir: 'Belum Mulai',
+      kendala: '',
+      mitigasi: ''
   });
-
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isEdit, setIsEdit] = useState(false);
-
-  // canEdit sekarang datang langsung dari BACKEND (Controller)
-  const isEditable = canEdit;
-
-  const openModal = (activity = null) => {
-    if (activity) {
-      setIsEdit(true);
-      setData({
-        id: activity.id,
-        task_name: activity.task_name,
-        description: activity.description,
-        target_count: activity.target_count,
-        target_unit: activity.target_unit,
-        start_date: activity.start_date,
-        end_date: activity.end_date,
-        rkkl_code: activity.rkkl_code,
-      });
-    } else {
-      setIsEdit(false);
-      reset();
-    }
-    setIsModalOpen(true);
-  };
-
-  const closeModal = () => {
-    setIsModalOpen(false);
-    clearErrors();
-    reset();
-  };
-
-  const submit = (e) => {
-    e.preventDefault();
-    if (isEdit) {
-      put(route("activities.update", data.id), {
-        onSuccess: () => closeModal(),
-      });
-    } else {
-      post(route("activities.store", report.id), {
-        onSuccess: () => closeModal(),
-      });
-    }
-  };
-
-  const deleteActivity = (id) => {
-    if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
-      router.delete(route("activities.destroy", id), { preserveScroll: true });
-    }
-  };
 
   const handleImport = (e) => {
-    e.preventDefault();
-    postImport(route("import.program"), {
-       onSuccess: () => resetImport(),
-    });
+      e.preventDefault();
+      postImport(route('reports.import_excel', report.id), {
+          onSuccess: () => setShowImportModal(false)
+      });
+  };
+
+  const openUpdateModal = (activity) => {
+      setSelectedActivity(activity);
+      setUpdateData({
+          realisasi_end_date: activity.realisasi_end_date || '',
+          status_akhir: activity.status_akhir || 'Belum Mulai',
+          kendala: activity.kendala || '',
+          mitigasi: activity.mitigasi || ''
+      });
+      setShowUpdateModal(true);
+  };
+
+  const handleUpdateSubmit = (e) => {
+      e.preventDefault();
+      putUpdate(route('reports.activities.update', { id: report.id, activity: selectedActivity.id }), {
+          onSuccess: () => {
+              setShowUpdateModal(false);
+              resetUpdate();
+          }
+      });
+  };
+
+  const today = new Date();
+  const isDelayed = (activity) => {
+      if (activity.status_akhir === 'Selesai' || activity.status_akhir === 'Sudah') return false;
+      if (parseFloat(activity.percent_complete) >= 100) return false;
+      if (!activity.rencana_end_date) return false;
+      const end = new Date(activity.rencana_end_date);
+      return today > end;
+  };
+
+  const delayedActivities = report.activities.filter(isDelayed);
+  const onTrackActivities = report.activities.filter(a => !isDelayed(a));
+  
+  const totalProgress = report.activities.length > 0 
+      ? report.activities.reduce((acc, curr) => acc + parseFloat(curr.percent_complete || 0), 0) / report.activities.length
+      : 0;
+
+  const getStatusBadge = (status) => {
+      switch(status) {
+          case 'Selesai':
+              return <span className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded text-xs font-bold">Selesai</span>;
+          case 'Proses':
+              return <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-bold">Proses</span>;
+          default:
+              return <span className="bg-gray-100 text-gray-800 px-2 py-1 rounded text-xs font-bold">Belum Mulai</span>;
+      }
   };
 
   return (
     <AuthenticatedLayout>
-      <Head title={`Detail Projek - ${report.period.month_year}`} />
-
-      <div className="py-12 bg-gray-50 flex-1 min-h-screen">
-        <div className="mx-auto max-w-screen-2xl sm:px-6 lg:px-8 space-y-8">
-          {/* HEADER INFO */}
-          <div className="bg-white p-8 shadow-sm sm:rounded-3xl border border-gray-100 bg-gradient-to-br from-white to-gray-50">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-center space-x-6">
-                <div className="bg-blue-900 h-16 w-1 border-4 border-amber-400 rounded-full" />
-                <div>
-                  <h3 className="text-3xl font-black tracking-tighter text-blue-900 uppercase italic">
-                    Informasi Pelapor
-                  </h3>
-                  <div className="flex flex-wrap gap-10 mt-4">
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        DIISI OLEH
-                      </p>
-                      <p className="text-sm font-black text-blue-900 uppercase italic">
-                        {report.user.name} -{" "}
-                        {report.user.gugus_mutu?.name || "UMUM"}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        PERIODE TARGET
-                      </p>
-                      <p className="text-sm font-black text-blue-900 uppercase italic">
-                        {report.period.month_year}
-                      </p>
-                    </div>
-                    <div className="space-y-1">
-                      <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                        STATUS SEKARANG
-                      </p>
-                      <span className="px-3 py-1 bg-amber-100 text-amber-700 text-[10px] font-black uppercase rounded-lg border border-amber-200">
-                        {report.approval_status}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+      <Head title="Detail Realisasi" />
+      
+      <div className="min-h-screen bg-gray-50 pb-20">
+        <div className="bg-white border-b sticky top-0 z-30">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between h-20">
               <div className="flex items-center gap-4">
                 <Link
                   href={route("reports.index")}
-                  className="p-4 bg-white text-blue-900 border border-gray-100 rounded-2xl hover:bg-gray-50 transition shadow-sm"
+                  className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition"
                 >
-                  <ChevronDoubleLeftIcon className="w-5 h-5" />
+                  <ArrowLeftIcon className="w-5 h-5" />
                 </Link>
-                {isEditable && (
-                  <button
-                    onClick={() => openModal()}
-                    className="inline-flex items-center px-10 py-4 bg-blue-900 border border-transparent rounded-[20px] font-black text-xs text-white uppercase tracking-widest hover:bg-blue-950 transition shadow-2xl"
-                  >
-                    <PlusIcon className="w-5 h-5 mr-3 text-amber-400" /> Tambah
-                    Data Baru
-                  </button>
+                <div>
+                  <h1 className="text-xl font-black text-gray-900 tracking-tight">
+                    Pengisian Realisasi Kegiatan
+                  </h1>
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
+                    Proyek: {report.project?.name} | Periode: {report.period?.month_year || '-'}
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-2">
+                {allowImport && canEdit && (
+                    <button 
+                        onClick={() => setShowImportModal(true)}
+                        className="px-4 py-2 bg-emerald-100 text-emerald-800 rounded-md font-bold text-sm hover:bg-emerald-200 transition"
+                    >
+                        Import Excel
+                    </button>
                 )}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Import Section (Conditional) */}
-          {allowImport && isEditable && (
-            <div className="bg-white p-8 shadow-sm sm:rounded-3xl border border-blue-100 bg-gradient-to-r from-blue-50/20 to-white">
-                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-                     <div className="flex items-center space-x-5">
-                          <div className="bg-amber-400 p-3 rounded-2xl shadow-lg border-2 border-white">
-                               <CloudArrowUpIcon className="h-6 w-6 text-blue-900" />
-                          </div>
-                          <div>
-                               <h4 className="text-lg font-black text-blue-900 uppercase italic tracking-tighter">Import Program Cepat</h4>
-                               <p className="text-[10px] font-bold text-gray-400 uppercase mt-1">Gunakan file Excel untuk mengisi banyak kegiatan sekaligus.</p>
-                               <div className="flex gap-4 mt-2">
-                                <a href="/users/export-template" className="text-[9px] font-black text-blue-700 uppercase hover:underline">Unduh Template</a>
-                               </div>
-                          </div>
-                     </div>
-                     <form onSubmit={handleImport} className="flex-1 max-w-xl flex items-center gap-2">
-                          <input 
-                            type="file" 
-                            onChange={e => setImportData('file', e.target.files[0])}
-                            className="flex-1 bg-white border border-gray-100 h-12 rounded-xl px-4 text-[10px] items-center flex"
-                            required
-                          />
-                          <div className="flex flex-col gap-1">
-                            <button 
-                                type="submit" 
-                                disabled={importProcessing}
-                                className="bg-blue-900 text-white px-8 h-10 rounded-xl font-black text-[10px] uppercase shadow-lg hover:bg-blue-950 disabled:opacity-50"
-                            >
-                                {importProcessing ? 'PROSES...' : 'IMPORT'}
-                            </button>
-                            <button 
-                                type="button" 
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    if(!importData.file) { alert('Pilih file dulu'); return; }
-                                    router.post(route('import.debug'), { file: importData.file }, {
-                                        forceFormData: true,
-                                        onFinish: () => {},
-                                    });
-                                }}
-                                className="bg-gray-100 text-gray-500 px-8 h-6 rounded-lg font-black text-[8px] uppercase hover:bg-gray-200 transition-all flex items-center justify-center gap-1"
-                            >
-                                <BugAntIcon className="w-2.5 h-2.5" /> LIHAT DEBUG
-                            </button>
-                          </div>
-                     </form>
-                </div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
+          
+          {/* Executive Dashboard */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-blue-50 flex items-center justify-center text-blue-600">
+                      <ChartBarIcon className="w-7 h-7" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Progress</p>
+                      <h2 className="text-3xl font-black text-gray-900">{totalProgress.toFixed(1)}%</h2>
+                  </div>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center text-red-600">
+                      <ExclamationTriangleIcon className="w-7 h-7" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Task Terlambat</p>
+                      <h2 className="text-3xl font-black text-gray-900">{delayedActivities.length}</h2>
+                  </div>
+              </div>
+              <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex items-center gap-4">
+                  <div className="w-14 h-14 rounded-full bg-emerald-50 flex items-center justify-center text-emerald-600">
+                      <CheckCircleIcon className="w-7 h-7" />
+                  </div>
+                  <div>
+                      <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Task On-Track</p>
+                      <h2 className="text-3xl font-black text-gray-900">{onTrackActivities.length}</h2>
+                  </div>
+              </div>
+          </div>
+
+          {/* Daftar Semua Kegiatan */}
+          <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden mb-8">
+            <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                <h2 className="text-lg font-black text-gray-900">Daftar Kegiatan untuk Diisi Realisasinya</h2>
             </div>
-          )}
-
-          {/* TABLE SECTION */}
-          <div className="bg-white p-2 shadow-sm sm:rounded-[32px] border border-gray-100 overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="w-full text-sm text-left border-collapse">
-                <thead className="bg-blue-900 text-white font-black uppercase text-[10px] tracking-widest italic border-b border-blue-950">
-                  <tr>
-                    <th className="px-6 py-6 border-r border-blue-950/30">
-                      KODE RKKL
-                    </th>
-                    <th className="px-6 py-6 border-r border-blue-950/30">
-                      TASK NAME
-                    </th>
-                    <th className="px-6 py-6 border-r border-blue-950/30">
-                      DESKRIPSI
-                    </th>
-                    <th className="px-6 py-6 text-center border-r border-blue-950/30">
-                      TARGET
-                    </th>
-                    <th className="px-6 py-6 border-r border-blue-950/30">
-                      JADWAL
-                    </th>
-                    {isEditable && (
-                      <th className="px-6 py-6 text-center">OPSI</th>
-                    )}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {report.activities && report.activities.length > 0 ? (
-                    report.activities.map((activity) => (
-                      <tr
-                        key={activity.id}
-                        className="hover:bg-blue-50/20 transition-all group"
-                      >
-                        <td className="px-6 py-6 border-r border-gray-50">
-                          <span className="text-[10px] font-black text-blue-900/40 uppercase">
-                            {activity.rkkl_code || activity.kode_rrkl || "-"}
-                          </span>
-                        </td>
-                        <td className="px-6 py-6 border-r border-gray-50 min-w-[250px]">
-                          <p className="font-black text-blue-900 text-[13px] uppercase tracking-tighter leading-tight italic">
-                            {activity.task_name || activity.nama_kegiatan_turunan}
-                          </p>
-                        </td>
-                        <td className="px-6 py-6 border-r border-gray-50 max-w-xs overflow-hidden text-ellipsis whitespace-nowrap">
-                          <p className="text-[11px] text-gray-500 italic">
-                            {activity.description || activity.deskripsi_kegiatan || "N/A"}
-                          </p>
-                        </td>
-                        <td className="px-6 py-6 text-center border-r border-gray-50">
-                          <p className="text-sm font-black text-blue-900">
-                            {activity.target_count || activity.jumlah_target}
-                          </p>
-                          <p className="text-[9px] font-bold text-gray-400 uppercase italic">
-                            {activity.target_unit || activity.hasil_kegiatan}
-                          </p>
-                        </td>
-                        <td className="px-6 py-6 border-r border-gray-50">
-                          <div className="flex items-center gap-2 text-[10px] font-black text-gray-400 uppercase italic">
-                            <span>{activity.start_date || activity.rencana_start_date}</span>
-                            <span>→</span>
-                            <span className="text-blue-900 underline decoration-amber-400">
-                              {activity.end_date || activity.rencana_end_date}
-                            </span>
-                          </div>
-                        </td>
-                        {isEditable && (
-                          <td className="px-6 py-6 whitespace-nowrap text-center space-x-2">
-                            <button
-                              onClick={() => openModal(activity)}
-                              className="p-3 bg-blue-50 text-blue-900 rounded-xl hover:bg-blue-900 hover:text-white transition-all shadow-sm"
-                            >
-                              <PencilSquareIcon className="h-4 w-4" />
-                            </button>
-                            <button
-                              onClick={() => deleteActivity(activity.id)}
-                              className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition-all shadow-sm"
-                            >
-                              <TrashIcon className="h-4 w-4" />
-                            </button>
-                          </td>
-                        )}
-                      </tr>
-                    ))
-                  ) : (
-                    <tr>
-                      <td colSpan={isEditable ? 6 : 5} className="px-6 py-24 text-center">
-                        <p className="text-gray-300 font-black uppercase tracking-[0.8em] italic animate-pulse">
-                          BELUM ADA KEGIATAN
-                        </p>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
+                <table className="w-full text-left border-collapse">
+                    <thead>
+                        <tr>
+                            <th className="px-6 py-4 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 bg-blue-900">Kegiatan</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 bg-blue-900">Jadwal Rencana</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 bg-blue-900">Tgl Realisasi Selesai</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 bg-blue-900">Status Kegiatan</th>
+                            <th className="px-6 py-4 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 bg-blue-900">Kendala & Mitigasi</th>
+                            <th className="px-6 py-4 text-center text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 bg-blue-900">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {report.activities.map((act) => (
+                            <tr key={act.id} className="hover:bg-gray-50 transition border-b border-gray-100 group">
+                                <td className="px-6 py-4">
+                                    <div className="text-sm font-bold text-gray-900">{act.nama_kegiatan_turunan}</div>
+                                    <div className="text-xs text-gray-500 mt-1 max-w-xs truncate">{act.deskripsi_kegiatan}</div>
+                                </td>
+                                <td className="px-6 py-4 text-sm text-gray-500 font-medium">
+                                    {act.rencana_start_date} <br/> s/d {act.rencana_end_date}
+                                </td>
+                                <td className="px-6 py-4">
+                                    {act.realisasi_end_date ? (
+                                        <div className="text-sm font-bold text-gray-800">{act.realisasi_end_date}</div>
+                                    ) : (
+                                        <div className="text-xs text-red-500 italic">Belum diisi</div>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4">
+                                    {getStatusBadge(act.status_akhir)}
+                                </td>
+                                <td className="px-6 py-4 text-xs text-gray-500 max-w-xs truncate">
+                                    {act.kendala || act.mitigasi ? (
+                                        <div>
+                                            <span className="font-bold text-gray-700">K:</span> {act.kendala || '-'}<br/>
+                                            <span className="font-bold text-gray-700">M:</span> {act.mitigasi || '-'}
+                                        </div>
+                                    ) : (
+                                        '-'
+                                    )}
+                                </td>
+                                <td className="px-6 py-4 text-center">
+                                    <button 
+                                        onClick={() => openUpdateModal(act)}
+                                        className="inline-flex items-center gap-1 px-4 py-2 bg-blue-50 text-blue-700 text-xs font-bold rounded-xl hover:bg-blue-600 hover:text-white transition shadow-sm border border-blue-100"
+                                    >
+                                        <PencilSquareIcon className="w-4 h-4" />
+                                        Isi Data
+                                    </button>
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
             </div>
           </div>
+
         </div>
       </div>
 
-      {/* MODAL EDIT/TAMBAH */}
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-blue-900/90 backdrop-blur-sm">
-          <div className="bg-white w-full max-w-2xl rounded-[32px] overflow-hidden shadow-2xl border border-white/20">
-            <div className="p-10">
-              <h2 className="text-3xl font-black text-blue-900 uppercase italic mb-8 border-b-8 border-amber-400 inline-block pb-2 tracking-tighter">
-                {isEdit ? "Edit Kegiatan" : "Tambah Kegiatan Baru"}
-              </h2>
-
-              <form onSubmit={submit} className="space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Nama Kegiatan / Milestone
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full h-16 bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner px-6"
-                      value={data.task_name}
-                      onChange={(e) => setData("task_name", e.target.value)}
-                      required
-                    />
+      {/* Modal Import Excel */}
+      <Modal show={showImportModal} onClose={() => setShowImportModal(false)}>
+          <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Import Data Laporan (Excel)</h2>
+              <form onSubmit={handleImport}>
+                  <div className="mb-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Upload File Excel</label>
+                      <input 
+                          type="file" 
+                          accept=".xlsx,.xls,.csv"
+                          onChange={e => setImportData('file', e.target.files[0])}
+                          className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700"
+                          required
+                      />
+                      {importErrors.file && <div className="text-red-500 text-xs mt-1">{importErrors.file}</div>}
                   </div>
-
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Deskripsi Singkat
-                    </label>
-                    <textarea
-                      className="w-full bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner p-6 h-32"
-                      value={data.description}
-                      onChange={(e) => setData("description", e.target.value)}
-                    />
+                  <div className="flex justify-end space-x-2">
+                      <button type="button" onClick={() => setShowImportModal(false)} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md text-sm font-bold">Batal</button>
+                      <button type="submit" disabled={importProcessing} className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-md text-sm font-bold">Import Data</button>
                   </div>
-
-                  <div className="md:col-span-2">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Kode RKKL (Opsional)
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full h-16 bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner px-6"
-                      value={data.rkkl_code}
-                      onChange={(e) => setData("rkkl_code", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Target (Angka)
-                    </label>
-                    <input
-                      type="number"
-                      className="w-full h-16 bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner px-6"
-                      value={data.target_count}
-                      onChange={(e) => setData("target_count", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Satuan
-                    </label>
-                    <input
-                      type="text"
-                      className="w-full h-16 bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner px-6"
-                      value={data.target_unit}
-                      onChange={(e) => setData("target_unit", e.target.value)}
-                      required
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Mulai Pelaksanaan
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full h-16 bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner px-6"
-                      value={data.start_date}
-                      onChange={(e) => setData("start_date", e.target.value)}
-                    />
-                  </div>
-
-                  <div>
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-2">
-                      Akhir Pelaksanaan
-                    </label>
-                    <input
-                      type="date"
-                      className="w-full h-16 bg-gray-50 border-gray-100 rounded-2xl text-sm font-black text-blue-900 focus:ring-amber-400 focus:border-amber-400 shadow-inner px-6"
-                      value={data.end_date}
-                      onChange={(e) => setData("end_date", e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="flex gap-4 pt-8">
-                  <button
-                    type="submit"
-                    className="flex-1 h-20 bg-blue-900 text-white rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-blue-950 transition shadow-2xl"
-                  >
-                    Simpan Data
-                  </button>
-                  <button
-                    type="button"
-                    onClick={closeModal}
-                    className="px-10 h-20 bg-gray-100 text-gray-400 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-gray-200 transition"
-                  >
-                    Batal
-                  </button>
-                </div>
               </form>
-            </div>
           </div>
-        </div>
-      )}
+      </Modal>
+
+      {/* Modal Update Realisasi */}
+      <Modal show={showUpdateModal} onClose={() => setShowUpdateModal(false)}>
+          <div className="p-6">
+              <h2 className="text-lg font-black text-gray-900 mb-4 tracking-tight">Form Pengisian Realisasi</h2>
+              
+              {selectedActivity && (
+                  <div className="mb-6 bg-blue-50 p-4 rounded-xl border border-blue-100">
+                      <p className="text-xs font-black text-blue-400 uppercase tracking-widest mb-1">Kegiatan Terpilih</p>
+                      <p className="text-sm font-bold text-blue-900">{selectedActivity.nama_kegiatan_turunan}</p>
+                      <p className="text-xs text-blue-700 mt-1">Jadwal Rencana: {selectedActivity.rencana_start_date} s/d {selectedActivity.rencana_end_date}</p>
+                  </div>
+              )}
+
+              <form onSubmit={handleUpdateSubmit}>
+                  <div className="grid grid-cols-2 gap-4 mb-5">
+                      <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tanggal Realisasi Selesai</label>
+                          <input 
+                              type="date"
+                              className="w-full border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:ring-blue-500 focus:border-blue-500 shadow-inner p-3"
+                              value={updateData.realisasi_end_date}
+                              onChange={e => setUpdateData('realisasi_end_date', e.target.value)}
+                          />
+                      </div>
+                      <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Status Kegiatan</label>
+                          <select 
+                              className="w-full border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:ring-blue-500 focus:border-blue-500 shadow-inner p-3"
+                              value={updateData.status_akhir}
+                              onChange={e => setUpdateData('status_akhir', e.target.value)}
+                          >
+                              <option value="Belum Mulai">Belum Mulai</option>
+                              <option value="Proses">Proses</option>
+                              <option value="Selesai">Selesai</option>
+                          </select>
+                      </div>
+                  </div>
+
+                  <div className="mb-5">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Kendala / Akar Masalah (Jika Ada)</label>
+                      <textarea 
+                          className="w-full border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:ring-blue-500 focus:border-blue-500 shadow-inner p-4"
+                          rows="2"
+                          placeholder="Jelaskan kendala yang dialami..."
+                          value={updateData.kendala}
+                          onChange={e => setUpdateData('kendala', e.target.value)}
+                      ></textarea>
+                  </div>
+
+                  <div className="mb-6">
+                      <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Rencana Mitigasi / Solusi (Jika Ada Kendala)</label>
+                      <textarea 
+                          className="w-full border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:ring-emerald-500 focus:border-emerald-500 shadow-inner p-4"
+                          rows="2"
+                          placeholder="Langkah perbaikan atau mitigasi..."
+                          value={updateData.mitigasi}
+                          onChange={e => setUpdateData('mitigasi', e.target.value)}
+                      ></textarea>
+                  </div>
+
+                  <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
+                      <button 
+                          type="button" 
+                          onClick={() => setShowUpdateModal(false)} 
+                          className="px-6 py-3 bg-gray-100 text-gray-700 rounded-xl text-sm font-black uppercase tracking-widest hover:bg-gray-200 transition"
+                      >
+                          Batal
+                      </button>
+                      <button 
+                          type="submit" 
+                          disabled={updateProcessing} 
+                          className="px-6 py-3 bg-blue-900 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-blue-950 transition shadow-xl disabled:opacity-50"
+                      >
+                          {updateProcessing ? 'Menyimpan...' : 'Simpan Realisasi'}
+                      </button>
+                  </div>
+              </form>
+          </div>
+      </Modal>
+
     </AuthenticatedLayout>
   );
 }
+

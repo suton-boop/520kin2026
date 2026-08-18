@@ -9,6 +9,20 @@ use Illuminate\Support\Facades\Auth;
 
 class AnggaranController extends Controller
 {
+    public function export(Request $request)
+    {
+        $query = Anggaran::query();
+
+        if ($request->has('search') && $request->search !== '') {
+            $searchTerm = % . $request->search . %;
+            $query->where('kode_pmo', 'like', $searchTerm)
+                  ->orWhere('kode_rrkl', 'like', $searchTerm);
+        }
+
+        $anggarans = $query->get();
+        return \Excel::download(new \App\Exports\AnggaransExport($anggarans), 'Daftar_Anggaran.xlsx');
+    }
+
     public function index()
     {
         $user = Auth::user();
@@ -18,8 +32,13 @@ class AnggaranController extends Controller
         // Let's pass all to frontend, frontend handles display of active/inactive
         $data = Anggaran::whereNull('parent_id')->with('children')->orderBy('id')->get();
         
-        // Calculate percent
+        // Calculate percent and auto-sum from children
         $data->transform(function ($parent) {
+            // Auto sum from children
+            $parent->volume_realisasi = $parent->children->sum('volume_realisasi');
+            $parent->anggaran_realisasi = $parent->children->sum('anggaran_realisasi');
+            $parent->anggaran_alokasi = $parent->children->sum('anggaran_alokasi');
+
             $parent->anggaran_persen = $parent->anggaran_alokasi > 0 
                 ? round(($parent->anggaran_realisasi / $parent->anggaran_alokasi) * 100, 1) 
                 : 0;
@@ -59,7 +78,9 @@ class AnggaranController extends Controller
             'kode' => 'required|string|max:255',
             'tipe' => 'nullable|string|max:255',
             'nomenklatur' => 'required|string',
+            'satuan' => 'nullable|string',
             'volume' => 'required|string',
+            'volume_realisasi' => 'nullable|string',
             'pelaksanaan' => 'required|numeric',
             'anggaran_alokasi' => 'required|numeric',
             'anggaran_realisasi' => 'required|numeric',
@@ -88,7 +109,9 @@ class AnggaranController extends Controller
             'kode' => 'required|string|max:255',
             'tipe' => 'nullable|string|max:255',
             'nomenklatur' => 'required|string',
+            'satuan' => 'nullable|string',
             'volume' => 'required|string',
+            'volume_realisasi' => 'nullable|string',
             'pelaksanaan' => 'required|numeric',
             'anggaran_alokasi' => 'required|numeric',
             'anggaran_realisasi' => 'required|numeric',
@@ -130,3 +153,4 @@ class AnggaranController extends Controller
         return redirect()->back()->with('success', 'Data Anggaran berhasil dihapus.');
     }
 }
+

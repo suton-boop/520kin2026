@@ -1,4 +1,4 @@
-﻿import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import InputError from '@/Components/InputError';
 import InputLabel from '@/Components/InputLabel';
 import PrimaryButton from '@/Components/PrimaryButton';
@@ -83,7 +83,7 @@ export default function Create({ roles, gugusMutus }) {
                                         value={data.gugus_mutu_id}
                                         onChange={(e) => setData('gugus_mutu_id', e.target.value)}
                                     >
-                                        <option value="">None</option>
+                                        <option value="">Semua Gugus Mutu (Akses Global)</option>
                                         {gugusMutus.map((gm) => (
                                             <option key={gm.id} value={gm.id}>
                                                 {gm.name}
@@ -108,3 +108,4 @@ export default function Create({ roles, gugusMutus }) {
         </AuthenticatedLayout>
     );    
 }
+
