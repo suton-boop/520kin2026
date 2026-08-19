@@ -1,3 +1,4 @@
+import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
 import '../css/app.css';
 import './bootstrap';
 
@@ -23,3 +24,4 @@ createInertiaApp({
         color: '#4B5563',
     },
 });
+

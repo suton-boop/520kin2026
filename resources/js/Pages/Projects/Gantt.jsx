@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, useForm } from '@inertiajs/react';
-import 'dhtmlx-gantt/codebase/dhtmlxgantt.css';
+
 import gantt from 'dhtmlx-gantt';
 
 export default function Gantt({ project }) {
@@ -147,6 +147,7 @@ export default function Gantt({ project }) {
         </AuthenticatedLayout>
     );
 }
+
 
 
 
