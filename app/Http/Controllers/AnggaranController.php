@@ -14,7 +14,7 @@ class AnggaranController extends Controller
         $query = Anggaran::query();
 
         if ($request->has('search') && $request->search !== '') {
-            $searchTerm = % . $request->search . %;
+            $searchTerm = '%' . $request->search . '%';
             $query->where('kode_pmo', 'like', $searchTerm)
                   ->orWhere('kode_rrkl', 'like', $searchTerm);
         }
@@ -153,4 +153,5 @@ class AnggaranController extends Controller
         return redirect()->back()->with('success', 'Data Anggaran berhasil dihapus.');
     }
 }
+
 
