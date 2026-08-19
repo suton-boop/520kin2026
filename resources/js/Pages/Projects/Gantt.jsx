@@ -16,7 +16,7 @@ export default function Gantt({ project }) {
                 setShowImportModal(false);
                 reset('file');
                 gantt.clearAll();
-                gantt.load("/projects/" + project.id + "/gantt-data");
+                gantt.load(route('projects.gantt_data', project.id));
             }
         });
     };
@@ -67,11 +67,11 @@ export default function Gantt({ project }) {
         gantt.init(ganttContainer.current);
         
         // Load data from backend
-        gantt.load("/projects/" + project.id + "/gantt-data");
+        gantt.load(route('projects.gantt_data', project.id));
 
         // Setup DataProcessor to sync with Laravel backend
         const dp = gantt.createDataProcessor({
-            url: "/projects/" + project.id,
+            url: route('projects.gantt_data', project.id).replace('/gantt-data', ''),
             mode: "REST",
             headers: {
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
@@ -86,10 +86,10 @@ export default function Gantt({ project }) {
 
     return (
         <AuthenticatedLayout>
-            <Head title={`Gantt - ${project.name}`} />
+            <Head title={`Gantt - {project.name}`} />
             <div className="h-screen w-full flex flex-col bg-white">
                 <div className="p-4 bg-gray-50 border-b flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-800">Perencanaan Project: ${project.name}</h2>
+                    <h2 className="text-xl font-bold text-gray-800">Perencanaan Project: {project.name}</h2>
                     <div className="space-x-2">
                         <a href={route('projects.index')} className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 font-semibold inline-block">&larr; Kembali</a>
                           <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200 font-semibold" onClick={() => gantt.createTask()}>+ Tambah WBS/Task</button>
@@ -147,6 +147,8 @@ export default function Gantt({ project }) {
         </AuthenticatedLayout>
     );
 }
+
+
 
 
 
