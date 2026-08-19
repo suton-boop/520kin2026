@@ -7,8 +7,13 @@ import Modal from '@/Components/Modal';
 export default function Show({ report, userRole, allowImport, canEdit, projects }) {
   
   const [showImportModal, setShowImportModal] = useState(false);
+  const [showSyncModal, setShowSyncModal] = useState(false);
   const [showUpdateModal, setShowUpdateModal] = useState(false);
   const [selectedActivity, setSelectedActivity] = useState(null);
+
+  const { data: syncData, setData: setSyncData, post: postSync, processing: syncProcessing, errors: syncErrors } = useForm({ project_id: report.project_id || '' });
+
+  const handleSync = (e) => { e.preventDefault(); postSync(route('reports.pull', report.id), { onSuccess: () => setShowSyncModal(false) }); };
 
   const { data: importData, setData: setImportData, post: postImport, processing: importProcessing, errors: importErrors } = useForm({
       file: null
@@ -93,7 +98,7 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
                 </Link>
                 <div>
                   <h1 className="text-xl font-black text-gray-900 tracking-tight">
-                    Pengisian Realisasi Kegiatan
+                    Laporan Kinerja Bulanan
                   </h1>
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mt-1">
                     Proyek: {report.project?.name} | Periode: {report.period?.month_year || '-'}
@@ -101,6 +106,14 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
                 </div>
               </div>
               <div className="flex gap-2">
+                                {canEdit && (
+                    <button 
+                        onClick={() => setShowSyncModal(true)}
+                        className="px-4 py-2 bg-blue-100 text-blue-800 rounded-md font-bold text-sm hover:bg-blue-200 transition"
+                    >
+                        Tarik Data Perencanaan
+                    </button>
+                )}
                 {allowImport && canEdit && (
                     <button 
                         onClick={() => setShowImportModal(true)}
@@ -213,6 +226,35 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
         </div>
       </div>
 
+            {/* Modal Sync */}
+      <Modal show={showSyncModal} onClose={() => setShowSyncModal(false)}>
+          <div className="p-6">
+              <h2 className="text-lg font-bold text-gray-900 mb-4">Tarik Data Perencanaan (Sinkronisasi)</h2>
+              <p className="text-sm text-gray-600 mb-6">Sistem akan menarik daftar task dari Gantt Chart ke Laporan ini sebagai Snapshot.</p>
+              <form onSubmit={handleSync}>
+                  <div className="mb-6">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Pilih Proyek Sumber</label>
+                      <select 
+                          className="block w-full text-sm border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
+                          value={syncData.project_id}
+                          onChange={e => setSyncData('project_id', e.target.value)}
+                          required
+                      >
+                          <option value="">-- Pilih Proyek --</option>
+                          {projects && projects.map(p => (
+                              <option key={p.id} value={p.id}>{p.name}</option>
+                          ))}
+                      </select>
+                      {syncErrors.project_id && <div className="text-red-500 text-xs mt-1">{syncErrors.project_id}</div>}
+                  </div>
+                  <div className="flex justify-end space-x-2">
+                      <button type="button" onClick={() => setShowSyncModal(false)} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-md text-sm font-bold">Batal</button>
+                      <button type="submit" disabled={syncProcessing} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-bold">Tarik Data</button>
+                  </div>
+              </form>
+          </div>
+      </Modal>
+
       {/* Modal Import Excel */}
       <Modal show={showImportModal} onClose={() => setShowImportModal(false)}>
           <div className="p-6">
@@ -320,4 +362,5 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
     </AuthenticatedLayout>
   );
 }
+
 

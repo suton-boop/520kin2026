@@ -30,6 +30,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->middleware(\App\Http\Middleware\Check520Rule::class.':report')
         ->name('reports.submit_report');
 
+    // Rute Tarik Data dari Penjadwalan
+    Route::post('Project/{id}/pull', [\App\Http\Controllers\ReportController::class, 'pullFromSchedule'])->name('reports.pull');
+
     // Approvals Routes
     Route::get('/approvals', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('approvals.index');
     Route::post('/approvals/bulk-approve', [\App\Http\Controllers\ApprovalController::class, 'bulkApprove'])->name('approvals.bulk_approve');
@@ -84,6 +87,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
 
 
 
