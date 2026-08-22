@@ -228,7 +228,8 @@ export default function Index({ auth, users, gugusMutus = [] }) {
                       )}
                     </tbody>
                   </table>
-                </div>
+                        </div>
+                        {users && users.links && <Pagination links={users.links} />}
               </div>
             </div>
 

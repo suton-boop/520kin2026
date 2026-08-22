@@ -14,7 +14,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $users = User::with(['roles', 'gugusMutu'])->latest()->paginate(10);
+        $users = User::with(['roles', 'gugusMutu'])->latest()->paginate(15);
         return Inertia::render('Users/Index', [
             'users' => $users,
             'gugusMutus' => GugusMutu::all()

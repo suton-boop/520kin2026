@@ -83,14 +83,14 @@ export default function Index({ gugusMutus }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {gugusMutus.length === 0 ? (
+                                {(gugusMutus.data || gugusMutus).length === 0 ? (
                                     <tr>
                                         <td colSpan="4" className="p-8 text-center text-blue-900/50 font-medium">
                                             Belum ada data divisi.
                                         </td>
                                     </tr>
                                 ) : (
-                                    gugusMutus.map((gm) => (
+                                    (gugusMutus.data || gugusMutus).map((gm) => (
                                         <tr key={gm.id} className="border-b border-gray-100 hover:bg-gray-50/50 transition-colors">
                                             <td className="p-4 font-bold text-blue-900">{gm.name}</td>
                                             <td className="p-4 text-center text-gray-500 font-medium">
@@ -126,7 +126,8 @@ export default function Index({ gugusMutus }) {
                                 )}
                             </tbody>
                         </table>
-                    </div>
+                        </div>
+                        {gugusMutus && gugusMutus.links && <Pagination links={gugusMutus.links} />}
                 </div>
             </div>
 

@@ -12,12 +12,29 @@ use Illuminate\Support\Facades\Auth;
 
 class ProjectController extends Controller
 {
-        public function index()
+        public function index(\Illuminate\Http\Request $request)
     {
-        $projects = Project::with('gugusMutu')->orderBy('created_at', 'desc')->get();
+        $query = Project::with('gugusMutu')->orderBy('created_at', 'desc');
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('name', 'like', '%' . $request->search . '%')
+                  ->orWhere('description', 'like', '%' . $request->search . '%');
+            });
+        }
+                if ($request->gugus_mutu_id) {
+            if ($request->gugus_mutu_id == 5) {
+                $query->where(function($q) {
+                    $q->where('gugus_mutu_id', 5)->orWhereNull('gugus_mutu_id');
+                });
+            } else {
+                $query->where('gugus_mutu_id', $request->gugus_mutu_id);
+            }
+        }
+        $projects = $query->paginate(15)->withQueryString();
         $gugusMutus = GugusMutu::orderBy('name')->get();
         return Inertia::render('Projects/Index', [
             'projects' => $projects,
+            'filters' => $request->only(['search', 'gugus_mutu_id']),
             'gugusMutus' => $gugusMutus
         ]);
     }
@@ -76,6 +93,26 @@ class ProjectController extends Controller
             return redirect()->back()->withErrors(['error' => 'Gagal mengimpor: ' . $e->getMessage()]);
         }
     }
+    
+    public function downloadTemplate()
+    {
+        return \Excel::download(new \App\Exports\ProjectTemplateExport, 'Template_Import_Proyek.xlsx');
+    }
+
+    public function import(\Illuminate\Http\Request $request)
+    {
+        $request->validate([
+            'file' => 'required|file|mimes:xlsx,xls,csv'
+        ]);
+
+        try {
+            \Excel::import(new \App\Imports\ProjectImport, $request->file('file'));
+            return redirect()->back()->with('success', 'Berhasil mengimpor data proyek.');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors(['error' => 'Gagal mengimpor: ' . $e->getMessage()]);
+        }
+    }
+
     public function export()
     {
         $user = Auth::user();

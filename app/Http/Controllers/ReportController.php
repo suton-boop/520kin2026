@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
-        public function index()
+        public function index(\Illuminate\Http\Request $request)
     {
         $user = Auth::user();
         
@@ -35,7 +35,33 @@ class ReportController extends Controller
             }
         }
 
-        $activities = $query->get()->sortByDesc(function($act) { return $act->reportSubmission ? $act->reportSubmission->created_at : $act->created_at; })->values();
+        
+        if ($request->search) {
+            $query->where(function($q) use ($request) {
+                $q->where('nama_kegiatan_turunan', 'like', '%' . $request->search . '%')
+                  ->orWhere('deskripsi_kegiatan', 'like', '%' . $request->search . '%');
+            });
+        }
+
+                if ($request->gugus_mutu_id) {
+            $query->whereHas('reportSubmission.user', function($q) use ($request) {
+                if ($request->gugus_mutu_id == 5) {
+                    $q->where('gugus_mutu_id', 5)->orWhereNull('gugus_mutu_id');
+                } else {
+                    $q->where('gugus_mutu_id', $request->gugus_mutu_id);
+                }
+            });
+        }
+        
+        if ($request->status_akhir) {
+            $query->where('status_akhir', $request->status_akhir);
+        }
+
+        $activities = $query->leftJoin('report_submissions', 'activities.report_submission_id', '=', 'report_submissions.id')
+                            ->select('activities.*')
+                            ->orderBy('report_submissions.created_at', 'desc')
+                            ->orderBy('activities.created_at', 'desc')
+                            ->paginate(15)->withQueryString();
         
         $allowImport = false;
         $isGlobalManager = $user->hasRole('manager') && empty($user->gugus_mutu_id);
@@ -46,11 +72,16 @@ class ReportController extends Controller
             $allowImport = $gm ? (bool)$gm->allow_import : false;
         }
 
+        
+        $gugusMutus = \App\Models\GugusMutu::orderBy('name')->get();
         return Inertia::render('Reports/Index', [
             'activities' => $activities,
             'userRole' => $user->roles->pluck('name')->first(),
             'allowImport' => $allowImport,
+            'gugusMutus' => $gugusMutus,
+            'filters' => $request->only(['search', 'gugus_mutu_id', 'status_akhir']),
         ]);
+
     }
 
     public function store(Request $request)
@@ -225,17 +256,23 @@ class ReportController extends Controller
     public function updateActivity(Request $request, $id, $activityId)
     {
         $request->validate([
+            'realisasi_start_date' => 'nullable|date',
+            'realisasi_end_date' => 'nullable|date',
+            'status_akhir' => 'nullable|string',
             'kendala' => 'nullable|string',
             'mitigasi' => 'nullable|string',
         ]);
 
         $activity = Activity::findOrFail($activityId);
         $activity->update([
+            'realisasi_start_date' => $request->realisasi_start_date,
+            'realisasi_end_date' => $request->realisasi_end_date,
+            'status_akhir' => $request->status_akhir,
             'kendala' => $request->kendala,
             'mitigasi' => $request->mitigasi,
         ]);
 
-        return back()->with('success', 'Tindakan Mitigasi berhasil disimpan.');
+        return back()->with('success', 'Realisasi dan Tindakan Mitigasi berhasil disimpan.');
     }
     public function export()
     {
@@ -258,6 +295,7 @@ class ReportController extends Controller
         return \Excel::download(new \App\Exports\ReportsExport($activities), 'Daftar_Laporan.xlsx');
     }
 }
+
 
 
 

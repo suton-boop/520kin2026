@@ -20,7 +20,7 @@ export default function Index({ auth, pending_approvals, userRole }) {
 
     const handleSelectAll = (e) => {
         if (e.target.checked) {
-            setSelectedIds(pending_approvals.map(item => item.id));
+            setSelectedIds((pending_approvals.data || pending_approvals).map(item => item.id));
         } else {
             setSelectedIds([]);
         }
@@ -88,7 +88,7 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                 </thead>
                                 <tbody className="bg-white divide-y divide-gray-200">
                                     {pending_approvals?.length > 0 ? (
-                                        pending_approvals.map((item) => (
+                                        (pending_approvals.data || pending_approvals).map((item) => (
                                             <tr key={item.id} className={selectedIds.includes(item.id) ? "bg-blue-50/30" : ""}>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <input 
@@ -128,6 +128,7 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                 </tbody>
                             </table>
                         </div>
+                        {pending_approvals && pending_approvals.links && <Pagination links={pending_approvals.links} />}
                     </div>
                 </div>
             </div>

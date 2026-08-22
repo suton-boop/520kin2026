@@ -1,10 +1,26 @@
 import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
-import { Head, Link, useForm } from '@inertiajs/react';
+import { Head, Link, useForm, router } from '@inertiajs/react';
 import { DocumentArrowUpIcon, DocumentMagnifyingGlassIcon, ArrowPathIcon } from '@heroicons/react/24/outline';
 import Modal from '@/Components/Modal';
+import Pagination from '@/Components/Pagination';
 
-export default function Index({ activities, userRole, allowImport }) {
+export default function Index({ activities, userRole, allowImport, gugusMutus, filters }) {
+    const [search, setSearch] = useState(filters?.search || '');
+    const [gugusMutuId, setGugusMutuId] = useState(filters?.gugus_mutu_id || '');
+    const [statusAkhir, setStatusAkhir] = useState(filters?.status_akhir || '');
+
+    const handleFilter = (e) => {
+        e.preventDefault();
+        router.get(route('reports.index'), { search, gugus_mutu_id: gugusMutuId, status_akhir: statusAkhir }, { preserveState: true, replace: true });
+    };
+    
+    const handleReset = () => {
+        setSearch('');
+        setGugusMutuId('');
+        setStatusAkhir('');
+        router.get(route('reports.index'), {}, { preserveState: true, replace: true });
+    };
     const { post } = useForm();
     const [showImportModal, setShowImportModal] = useState(false);
 
@@ -62,8 +78,8 @@ export default function Index({ activities, userRole, allowImport }) {
                             <div>
                                 <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Total Progress</p>
                                 <h2 className="text-3xl font-black text-gray-900">
-                                    {(Object.values(activities || {}).length > 0 
-                                        ? Object.values(activities || {}).reduce((acc, curr) => acc + parseFloat(curr.percent_complete || 0), 0) / Object.values(activities || {}).length
+                                    {(Object.values(activities.data || activities || {}).length > 0 
+                                        ? Object.values(activities.data || activities || {}).reduce((acc, curr) => acc + parseFloat(curr.percent_complete || 0), 0) / Object.values(activities.data || activities || {}).length
                                         : 0).toFixed(1)}%
                                 </h2>
                             </div>
@@ -75,7 +91,7 @@ export default function Index({ activities, userRole, allowImport }) {
                             <div>
                                 <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Task Terlambat</p>
                                 <h2 className="text-3xl font-black text-gray-900">
-                                    {Object.values(activities || {}).filter(act => {
+                                    {Object.values(activities.data || activities || {}).filter(act => {
                                         if (act.status_akhir === 'Selesai' || act.status_akhir === 'Sudah') return false;
                                         if (parseFloat(act.percent_complete) >= 100) return false;
                                         if (!act.rencana_end_date) return false;
@@ -91,7 +107,7 @@ export default function Index({ activities, userRole, allowImport }) {
                             <div>
                                 <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Task On-Track</p>
                                 <h2 className="text-3xl font-black text-gray-900">
-                                    {Object.values(activities || {}).filter(act => {
+                                    {Object.values(activities.data || activities || {}).filter(act => {
                                         if (act.status_akhir === 'Selesai' || act.status_akhir === 'Sudah') return true;
                                         if (parseFloat(act.percent_complete) >= 100) return true;
                                         if (!act.rencana_end_date) return true;
@@ -103,6 +119,41 @@ export default function Index({ activities, userRole, allowImport }) {
                     </div>
 
                     {/* Table Section */}
+                    <div className="p-4 bg-white border border-gray-100 rounded-2xl shadow-sm mb-6 flex flex-wrap gap-4 items-center">
+                        <form onSubmit={handleFilter} className="flex flex-wrap gap-2 w-full">
+                            <input 
+                                type="text" 
+                                placeholder="Cari kegiatan..." 
+                                className="border-gray-300 rounded text-sm px-3 py-2 w-full md:w-64"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                            {userRole && (userRole === 'admin' || userRole === 'super-admin' || userRole === 'superadmin') && (
+                                <select 
+                                    className="border-gray-300 rounded text-sm px-3 py-2"
+                                    value={gugusMutuId}
+                                    onChange={e => setGugusMutuId(e.target.value)}
+                                >
+                                    <option value="">Semua Devisi</option>
+                                    {gugusMutus && gugusMutus.map(gm => (
+                                        <option key={gm.id} value={gm.id}>{gm.name}</option>
+                                    ))}
+                                </select>
+                            )}
+                            <select 
+                                className="border-gray-300 rounded text-sm px-3 py-2"
+                                value={statusAkhir}
+                                onChange={e => setStatusAkhir(e.target.value)}
+                            >
+                                <option value="">Semua Status</option>
+                                <option value="Belum Mulai">Belum Mulai</option>
+                                <option value="Proses">Proses</option>
+                                <option value="Selesai">Selesai</option>
+                            </select>
+                            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700">Filter</button>
+                            <button type="button" onClick={handleReset} className="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-300">Reset</button>
+                        </form>
+                    </div>
                     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 overflow-hidden">
                         <div className="overflow-x-auto">
                             <table className="w-full text-left whitespace-nowrap">
@@ -112,15 +163,16 @@ export default function Index({ activities, userRole, allowImport }) {
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Nama Kegiatan</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 max-w-xs">Deskripsi</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Periode</th>
-                                        <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tgl Realisasi</th>
+                                        <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tgl Realisasi Mulai</th>
+                                        <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tgl Realisasi Selesai</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Ceklis Laporan (Status)</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Status Kegiatan</th>
                                         <th className="px-6 py-5 bg-blue-900 text-center text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Aksi</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {activities && Object.values(activities || {}).length > 0 ? (
-                                        Object.values(activities || {}).map((activity) => (
+                                    {activities && Object.values(activities.data || activities || {}).length > 0 ? (
+                                        Object.values(activities.data || activities || {}).map((activity) => (
                                             <tr key={activity.id} className="hover:bg-gray-50/50 transition border-b border-gray-100 group">
                                                 <td className="px-6 py-5">
                                                     <span className="text-xs font-bold text-blue-900 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 uppercase tracking-widest">
@@ -136,6 +188,9 @@ export default function Index({ activities, userRole, allowImport }) {
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="text-sm font-bold text-gray-800">{activity.report_submission?.period?.month_year || "-"}</div>
+                                                </td>
+                                                <td className="px-6 py-5">
+                                                    <div className="text-sm font-bold text-gray-800">{activity.realisasi_start_date || "-"}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="text-sm font-bold text-gray-800">{activity.realisasi_end_date || "-"}</div>
@@ -184,7 +239,7 @@ export default function Index({ activities, userRole, allowImport }) {
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="8" className="px-6 py-20 text-center">
+                                            <td colSpan="9" className="px-6 py-20 text-center">
                                                 <div className="flex flex-col items-center justify-center">
                                                     <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 shadow-inner">
                                                         <ArrowPathIcon className="w-10 h-10 text-gray-300" />
@@ -198,6 +253,7 @@ export default function Index({ activities, userRole, allowImport }) {
                                 </tbody>
                             </table>
                         </div>
+                        {activities && activities.links && <Pagination links={activities.links} />}
                     </div>
 
                 </div>

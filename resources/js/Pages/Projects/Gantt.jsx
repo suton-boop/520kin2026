@@ -8,6 +8,26 @@ export default function Gantt({ project }) {
     const ganttContainer = useRef(null);
     const [showImportModal, setShowImportModal] = useState(false);
     const { data, setData, post, processing, errors, reset } = useForm({ file: null });
+    const [scale, setScale] = useState('day');
+
+        const handleScaleChange = (e) => {
+        const val = e.target.value;
+        setScale(val);
+        if (val === 'month') {
+            gantt.config.scales = [
+                {unit: "year", step: 1, format: "%Y"},
+                {unit: "month", step: 1, format: "%M"}
+            ];
+            gantt.config.min_column_width = 80;
+        } else {
+            gantt.config.scales = [
+                {unit: "month", step: 1, format: "%F %Y"},
+                {unit: "day", step: 1, format: "%j"}
+            ];
+            gantt.config.min_column_width = 40;
+        }
+        gantt.render();
+    };
 
     const handleImportSubmit = (e) => {
         e.preventDefault();
@@ -22,6 +42,19 @@ export default function Gantt({ project }) {
     };
 
     useEffect(() => {
+                gantt.plugins({
+            pagination: true
+        });
+        gantt.config.page_size = 15;
+        gantt.config.pager = {
+            container: "gantt_pager"
+        };
+        // initial scale
+        gantt.config.scales = [
+            {unit: "month", step: 1, format: "%F %Y"},
+            {unit: "day", step: 1, format: "%j"}
+        ];
+        gantt.config.min_column_width = 40;
         gantt.config.date_format = "%Y-%m-%d %H:%i:%s";
         gantt.config.auto_scheduling = true;
         gantt.config.auto_scheduling_strict = true;
@@ -31,6 +64,7 @@ export default function Gantt({ project }) {
             {name: "wbs_code", label: "WBS", width: 60, template: function(task){ return task.wbs_code || gantt.getWBSCode(task); }},
             {name: "text", label: "Task Name", tree: true, width: 200, resize: true},
             {name: "start_date", label: "Start", align: "center", width: 90, resize: true},
+            {name: "end_date", label: "Finish", align: "center", width: 90, resize: true},
             {name: "duration", label: "Durasi", align: "center", width: 60},
             {name: "add", label: "", width: 44},
             {name: "buttons", label: "Aksi", width: 90, template: function(task) {
@@ -94,6 +128,10 @@ export default function Gantt({ project }) {
                         <a href={route('projects.index')} className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 font-semibold inline-block">&larr; Kembali</a>
                           <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200 font-semibold" onClick={() => gantt.createTask()}>+ Tambah WBS/Task</button>
                         <button className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm hover:bg-green-200 font-semibold" onClick={() => setShowImportModal(true)}>Import Excel</button>
+                        <select value={scale} onChange={handleScaleChange} className="px-3 py-1 bg-white border border-gray-300 text-gray-800 rounded text-sm font-semibold">
+                            <option value="day">Harian (Tgl)</option>
+                            <option value="month">Bulanan</option>
+                        </select>
                         <button className="px-3 py-1 bg-gray-200 text-gray-800 rounded text-sm hover:bg-gray-300" onClick={() => gantt.autoSchedule()}>Auto Schedule</button>
                     </div>
                 </div>
@@ -102,6 +140,7 @@ export default function Gantt({ project }) {
                     className="flex-1 w-full"
                     style={{ minHeight: '600px' }}
                 ></div>
+                <div id="gantt_pager" className="w-full flex justify-center p-2 bg-white border-t border-gray-200 gantt-pagination-container"></div>
             </div>
         
             {showImportModal && (

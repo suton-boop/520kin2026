@@ -1,34 +1,0 @@
-<?php
-require __DIR__.'/vendor/autoload.php';
-$app = require_once __DIR__.'/bootstrap/app.php';
-$kernel = $app->make(Illuminate\\Contracts\\Console\\Kernel::class);
-$kernel->bootstrap();
-
-use App\\Models\\User;
-use App\\Models\\GugusMutu;
-use App\\Models\\Period;
-use App\\Models\\ReportSubmission;
-use App\\Models\\Activity;
-use Illuminate\\Support\\Facades\\Hash;
-
-echo "Seeding process demo data...\n";
-
-$pJan = Period::firstOrCreate(['month_year' => '01-2026']);
-$pfeb = Period::firstOrCreate(['month_year' => '02-2026']);
-$pMar = Period::firstOrCreate(['month_year' => '03-2026']);
-
-$uPaud = User::where('email', 'staff_paud@admin.com')->first();
-$uSd = User::where('email', 'staff_sd@admin.com')->first();
-
-if ($uPaud) {
-    ReportSubmission::updateOrCreate(
-        ['user_id' => $uPaud->id, 'period_id' => $pJan->id],
-        ['form_type' => 'Laporan', 'approval_status' => 'Approved']
-    );
-    ReportSubmission::updateOrCreate(
-        ['user_id' => $uPaud->id, 'period_id' => $pfeb->id],
-        ['form²\IхO┬	с\э≤[┴к	ь\⌡щ≤[эщ]\ихO┬	т[≥[≥ивB┬
-Nб÷B┌ Y┬
-	Tы
-Hб┬≥\э²щX⌡Z\эз[ш▌▌²\]Sэ░э≥X]J┬ищ\ы\≈зY	хO┬	TыO Y	э\ [ызY	хO┬	≤[▀O YK┬иы⌡э⌡Wщ\IхO┬	с\э≤[┴к	ь\⌡щ≤[эщ]\ихO┬	т≥Z≥XщY	вB┬
-Nб÷B┌≥Xзх▒SSхUH┬т▒PUQуPпяTтя∙SH▌б

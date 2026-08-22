@@ -10,7 +10,7 @@ class GugusMutuController extends Controller
 {
     public function index()
     {
-        $gugusMutus = GugusMutu::withCount('users')->orderBy('name')->get();
+        $gugusMutus = GugusMutu::withCount('users')->orderBy('name')->paginate(15);
         return Inertia::render('GugusMutu/Index', [
             'gugusMutus' => $gugusMutus
         ]);

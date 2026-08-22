@@ -20,8 +20,9 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
   });
 
   const { data: updateData, setData: setUpdateData, put: putUpdate, processing: updateProcessing, reset: resetUpdate } = useForm({
-      realisasi_end_date: '',
-      status_akhir: 'Belum Mulai',
+      realisasi_start_date: '',
+        realisasi_end_date: '',
+        status_akhir: 'Belum Mulai',
       kendala: '',
       mitigasi: ''
   });
@@ -36,8 +37,9 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
   const openUpdateModal = (activity) => {
       setSelectedActivity(activity);
       setUpdateData({
-          realisasi_end_date: activity.realisasi_end_date || '',
-          status_akhir: activity.status_akhir || 'Belum Mulai',
+          realisasi_start_date: activity.realisasi_start_date || '',
+            realisasi_end_date: activity.realisasi_end_date || '',
+            status_akhir: activity.status_akhir || 'Belum Mulai',
           kendala: activity.kendala || '',
           mitigasi: activity.mitigasi || ''
       });
@@ -294,6 +296,15 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
 
               <form onSubmit={handleUpdateSubmit}>
                   <div className="grid grid-cols-2 gap-4 mb-5">
+                      <div>
+                          <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tanggal Realisasi Mulai</label>
+                          <input 
+                              type="date"
+                              className="w-full border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:ring-blue-500 focus:border-blue-500 shadow-inner p-3"
+                              value={updateData.realisasi_start_date}
+                              onChange={e => setUpdateData('realisasi_start_date', e.target.value)}
+                          />
+                      </div>
                       <div>
                           <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Tanggal Realisasi Selesai</label>
                           <input 

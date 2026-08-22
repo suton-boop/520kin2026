@@ -65,7 +65,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         return Inertia::render('Placeholder', ['title' => 'Transformasi Organisasi']);
     })->name('transformasi');
 
-        Route::get('projects/export', [\App\Http\Controllers\ProjectController::class, 'export'])->name('projects.export');
+        Route::get('projects/template', [\App\Http\Controllers\ProjectController::class, 'downloadTemplate'])->name('projects.template');
+    Route::post('projects/import', [\App\Http\Controllers\ProjectController::class, 'import'])->name('projects.import');
+    Route::get('projects/export', [\App\Http\Controllers\ProjectController::class, 'export'])->name('projects.export');
     Route::resource('projects', \App\Http\Controllers\ProjectController::class);
     Route::get('/projects/{project}/gantt-data', [\App\Http\Controllers\ProjectTaskController::class, 'getGanttData'])->name('projects.gantt_data');
     Route::post('/projects/{project}/task', [\App\Http\Controllers\ProjectTaskController::class, 'storeTask'])->name('projects.task.store');

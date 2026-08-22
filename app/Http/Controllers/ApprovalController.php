@@ -25,7 +25,7 @@ class ApprovalController extends Controller
             $query->where('id', 0);
         }
 
-        $pending_approvals = $query->orderBy('created_at', 'desc')->get();
+        $pending_approvals = $query->orderBy('created_at', 'desc')->paginate(15);
 
         return Inertia::render('Approvals/Index', [
             'pending_approvals' => $pending_approvals,

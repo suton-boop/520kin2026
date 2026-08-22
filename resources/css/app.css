@@ -1,4 +1,4 @@
-@tailwind base;
+﻿@tailwind base;
 @tailwind components;
 @tailwind utilities;
 
@@ -57,3 +57,25 @@
     --chart-5: 340 75% 55%
   }
 }
+.gantt_pagination {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.875rem;
+}
+.gantt_pagination_btn {
+    padding: 0.25rem 0.75rem;
+    background-color: #fff;
+    border: 1px solid #d1d5db;
+    border-radius: 0.375rem;
+    cursor: pointer;
+}
+.gantt_pagination_btn:hover {
+    background-color: #f3f4f6;
+}
+.gantt_pagination_btn_active {
+    background-color: #1e3a8a;
+    color: #fff;
+    border-color: #1e3a8a;
+}
+

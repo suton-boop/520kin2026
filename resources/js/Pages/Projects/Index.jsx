@@ -2,9 +2,24 @@ import React, { useState } from 'react';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 import { Head, Link, useForm, router } from '@inertiajs/react';
 import Modal from '@/Components/Modal';
+import Pagination from '@/Components/Pagination';
 
-export default function Index({ projects, gugusMutus }) {
+export default function Index({ projects, gugusMutus, filters }) {
+    const [search, setSearch] = useState(filters?.search || '');
+    const [gugusMutuId, setGugusMutuId] = useState(filters?.gugus_mutu_id || '');
+
+    const handleFilter = (e) => {
+        e.preventDefault();
+        router.get(route('projects.index'), { search, gugus_mutu_id: gugusMutuId }, { preserveState: true, replace: true });
+    };
+    
+    const handleReset = () => {
+        setSearch('');
+        setGugusMutuId('');
+        router.get(route('projects.index'), {}, { preserveState: true, replace: true });
+    };
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+    const [isImportModalOpen, setIsImportModalOpen] = useState(false);
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const [editingProject, setEditingProject] = useState(null);
     
@@ -15,6 +30,17 @@ export default function Index({ projects, gugusMutus }) {
         gugus_mutu_id: ''
     });
 
+    
+    const submitImport = (e) => {
+        e.preventDefault();
+        post(route('projects.import'), {
+            onSuccess: () => {
+                setIsImportModalOpen(false);
+                reset();
+            }
+        });
+    };
+    
     const submitCreate = (e) => {
         e.preventDefault();
         post(route('projects.store'), {
@@ -71,6 +97,12 @@ export default function Index({ projects, gugusMutus }) {
                                 Download Excel
                             </a>
                             <button 
+                                onClick={() => setIsImportModalOpen(true)}
+                                className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-2 px-4 rounded shadow mr-2"
+                            >
+                                Import Excel
+                            </button>
+                            <button 
                                 onClick={() => {
                                     reset();
                                     setIsCreateModalOpen(true);
@@ -82,6 +114,29 @@ export default function Index({ projects, gugusMutus }) {
                         </div>
                     </div>
 
+                    <div className="p-4 bg-white border border-gray-200 rounded-lg shadow-sm mb-4 flex flex-wrap gap-4 items-center">
+                        <form onSubmit={handleFilter} className="flex gap-2 w-full md:w-auto">
+                            <input 
+                                type="text" 
+                                placeholder="Cari proyek..." 
+                                className="border-gray-300 rounded text-sm px-3 py-2 w-full md:w-64"
+                                value={search}
+                                onChange={e => setSearch(e.target.value)}
+                            />
+                            <select 
+                                className="border-gray-300 rounded text-sm px-3 py-2"
+                                value={gugusMutuId}
+                                onChange={e => setGugusMutuId(e.target.value)}
+                            >
+                                <option value="">Semua Devisi</option>
+                                {gugusMutus && gugusMutus.map(gm => (
+                                    <option key={gm.id} value={gm.id}>{gm.name}</option>
+                                ))}
+                            </select>
+                            <button type="submit" className="bg-blue-600 text-white px-4 py-2 rounded text-sm font-semibold hover:bg-blue-700">Filter</button>
+                            <button type="button" onClick={handleReset} className="bg-gray-200 text-gray-700 px-4 py-2 rounded text-sm font-semibold hover:bg-gray-300">Reset</button>
+                        </form>
+                    </div>
                     <div className="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                         <table className="w-full text-sm text-left">
                             <thead>
@@ -94,7 +149,7 @@ export default function Index({ projects, gugusMutus }) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {projects.map(project => (
+                                {(projects.data || projects).map(project => (
                                     <tr key={project.id} className="border-b hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-900">{project.gugus_mutu ? project.gugus_mutu.name : '-'}</td>
                                             <td className="px-6 py-4 font-bold">{project.name}</td>
@@ -122,7 +177,7 @@ export default function Index({ projects, gugusMutus }) {
                                         </td>
                                     </tr>
                                 ))}
-                                {projects.length === 0 && (
+                                {(projects.data || projects).length === 0 && (
                                     <tr>
                                         <td colSpan="4" className="px-6 py-8 text-center text-gray-500">
                                             Belum ada data proyek.
@@ -132,6 +187,7 @@ export default function Index({ projects, gugusMutus }) {
                             </tbody>
                         </table>
                     </div>
+                    <Pagination links={projects.links} />
                 </div>
             </div>
 
@@ -246,7 +302,46 @@ export default function Index({ projects, gugusMutus }) {
                     </form>
                 </div>
             </Modal>
-        </AuthenticatedLayout>
+        
+            <Modal show={isImportModalOpen} onClose={() => setIsImportModalOpen(false)}>
+                <div className="p-6">
+                    <h2 className="text-lg font-bold text-gray-900 mb-4">Import Data Proyek (Excel)</h2>
+                    <form onSubmit={submitImport}>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Pilih file Excel (.xlsx)</label>
+                            <input
+                                type="file"
+                                accept=".xlsx,.xls,.csv"
+                                onChange={(e) => setData('file', e.target.files[0])}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+                            />
+                            {errors.file && <div className="text-red-500 text-sm mt-1">{errors.file}</div>}
+                        </div>
+                        <div className="flex justify-between items-center mt-2">
+                            <a href={route('projects.template')} className="text-sm text-indigo-600 hover:text-indigo-800 underline font-medium" target="_blank" download>
+                                Download Template
+                            </a>
+                            <div className="flex gap-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setIsImportModalOpen(false); reset(); }}
+                                    className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md hover:bg-gray-400 transition"
+                                >
+                                    Batal
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={processing}
+                                    className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50"
+                                >
+                                    {processing ? 'Mengimpor...' : 'Import'}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </Modal>
+    </AuthenticatedLayout>
     );
 }
 
