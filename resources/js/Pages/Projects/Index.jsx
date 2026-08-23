@@ -26,6 +26,7 @@ export default function Index({ projects, gugusMutus, filters }) {
     const { data, setData, post, put, processing, errors, reset } = useForm({
         name: '',
         start_date: '',
+        end_date: '',
         description: '',
         gugus_mutu_id: ''
     });
@@ -56,6 +57,7 @@ export default function Index({ projects, gugusMutus, filters }) {
         setData({
             name: project.name,
             start_date: project.start_date || '',
+            end_date: project.end_date || '',
             description: project.description || '',
                 gugus_mutu_id: project.gugus_mutu_id || ''
         });
@@ -144,6 +146,7 @@ export default function Index({ projects, gugusMutus, filters }) {
                                     <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Devisi / GM</th>
                                     <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Nama Proyek</th>
                                     <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tanggal Mulai</th>
+                                    <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tanggal Berakhir</th>
                                     <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 max-w-xs">Deskripsi</th>
                                     <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 text-center">Aksi</th>
                                 </tr>
@@ -154,14 +157,13 @@ export default function Index({ projects, gugusMutus, filters }) {
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-900">{project.gugus_mutu ? project.gugus_mutu.name : '-'}</td>
                                             <td className="px-6 py-4 font-bold">{project.name}</td>
                                         <td className="px-6 py-4">{project.start_date || '-'}</td>
+                                        <td className="px-6 py-4">{project.end_date || '-'}</td>
                                         <td className="px-6 py-4">{project.description || '-'}</td>
                                         <td className="px-6 py-4 text-right space-x-3 flex justify-end">
                                             <Link 
                                                 href={route('projects.show', project.id)} 
                                                 className="text-blue-600 hover:text-blue-800 font-bold bg-blue-50 px-3 py-1 rounded"
-                                            >
-                                                Buka Perencanaan
-                                            </Link>
+                                            >Detail</Link>
                                             <button 
                                                 onClick={() => openEditModal(project)}
                                                 className="text-amber-600 hover:text-amber-800 font-bold bg-amber-50 px-3 py-1 rounded"
@@ -208,13 +210,23 @@ export default function Index({ projects, gugusMutus, filters }) {
                             {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
                         </div>
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Tanggal Mulai (Project Start Date)</label>
+                            <label className="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
                             <input 
                                 type="date" 
                                 value={data.start_date} 
                                 onChange={e => setData('start_date', e.target.value)} 
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                             />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Tanggal Berakhir</label>
+                            <input 
+                                type="date" 
+                                value={data.end_date} 
+                                onChange={e => setData('end_date', e.target.value)} 
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            />
+                            {errors.end_date && <div className="text-red-500 text-xs mt-1">{errors.end_date}</div>}
                         </div>
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700">Deskripsi</label>
@@ -264,13 +276,23 @@ export default function Index({ projects, gugusMutus, filters }) {
                             {errors.name && <div className="text-red-500 text-xs mt-1">{errors.name}</div>}
                         </div>
                         <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700">Tanggal Mulai (Project Start Date)</label>
+                            <label className="block text-sm font-medium text-gray-700">Tanggal Mulai</label>
                             <input 
                                 type="date" 
                                 value={data.start_date} 
                                 onChange={e => setData('start_date', e.target.value)} 
                                 className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
                             />
+                        </div>
+                        <div className="mb-4">
+                            <label className="block text-sm font-medium text-gray-700">Tanggal Berakhir</label>
+                            <input 
+                                type="date" 
+                                value={data.end_date} 
+                                onChange={e => setData('end_date', e.target.value)} 
+                                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm"
+                            />
+                            {errors.end_date && <div className="text-red-500 text-xs mt-1">{errors.end_date}</div>}
                         </div>
                         <div className="mb-4">
                             <label className="block text-sm font-medium text-gray-700">Deskripsi</label>

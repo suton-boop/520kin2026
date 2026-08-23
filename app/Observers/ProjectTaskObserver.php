@@ -30,7 +30,6 @@ class ProjectTaskObserver
     {
         if (!$projectTask->start_date) return;
 
-        // Auto-create Period for the task's start month
         $date = \Carbon\Carbon::parse($projectTask->start_date);
         $monthYear = $date->locale('id')->isoFormat('MMMM YYYY');
         
@@ -52,10 +51,10 @@ class ProjectTaskObserver
 
         Activity::updateOrCreate(
             [
-                'report_submission_id' => $report->id,
                 'project_task_id' => $projectTask->id,
             ],
             [
+                'report_submission_id' => $report->id,
                 'nama_kegiatan_turunan' => $projectTask->name,
                 'rencana_start_date' => $projectTask->start_date,
                 'rencana_end_date' => $projectTask->finish_date,
@@ -65,4 +64,3 @@ class ProjectTaskObserver
         );
     }
 }
-

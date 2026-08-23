@@ -56,6 +56,7 @@ export default function Index({ reportData, periods, selectedPeriodId }) {
                                 onChange={handlePeriodChange}
                                 className="border-none focus:ring-0 text-sm font-bold bg-transparent pr-8 text-blue-900 cursor-pointer"
                             >
+                                <option value="all">Semua Periode</option>
                                 {periods.map(period => (
                                     <option key={period.id} value={period.id}>
                                         Periode: {period.month_year}

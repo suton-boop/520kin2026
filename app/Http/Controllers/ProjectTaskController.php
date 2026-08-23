@@ -16,7 +16,7 @@ class ProjectTaskController extends Controller
                 'id' => $task->id,
                 'text' => $task->name,
                 'start_date' => $task->start_date ? date('Y-m-d H:i:s', strtotime($task->start_date)) : null,
-                'duration' => $task->duration_days,
+                'duration' => (int) $task->duration_days,
                 'parent' => $task->parent_id ?? 0,
                 'progress' => $task->percent_complete / 100,
                 'is_auto_scheduled' => $task->is_auto_scheduled,
@@ -55,10 +55,15 @@ class ProjectTaskController extends Controller
         $task = new ProjectTask();
         $task->project_id = $project->id;
         $task->name = $request->text;
-        $task->start_date = $request->start_date ? date('Y-m-d H:i:s', strtotime($request->start_date)) : null;
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date) : null;
+        if ($startDate && $startDate->isWeekend()) {
+            $startDate->nextWeekday();
+        }
+        $task->start_date = $startDate ? $startDate->format('Y-m-d H:i:s') : null;
         $task->duration_days = $request->duration ?? 1;
         $task->parent_id = $request->parent == 0 ? null : $request->parent;
         $task->percent_complete = ($request->progress ?? 0) * 100;
+        $task->sort_order = (\App\Models\ProjectTask::where('project_id', $project->id)->max('sort_order') ?? 0) + 1;
         $task->save();
 
         return response()->json([
@@ -70,7 +75,11 @@ class ProjectTaskController extends Controller
     public function updateTask(Request $request, Project $project, ProjectTask $task)
     {
         $task->name = $request->text;
-        $task->start_date = $request->start_date ? date('Y-m-d H:i:s', strtotime($request->start_date)) : null;
+        $startDate = $request->start_date ? \Carbon\Carbon::parse($request->start_date) : null;
+        if ($startDate && $startDate->isWeekend()) {
+            $startDate->nextWeekday();
+        }
+        $task->start_date = $startDate ? $startDate->format('Y-m-d H:i:s') : null;
         $task->duration_days = $request->duration ?? $task->duration_days;
         $task->parent_id = $request->parent == 0 ? null : $request->parent;
         $task->percent_complete = ($request->progress ?? 0) * 100;

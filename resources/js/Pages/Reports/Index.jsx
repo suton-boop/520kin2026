@@ -57,6 +57,15 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                             <p className="text-sm font-semibold text-gray-500 mt-1">Daftar ini otomatis ditarik dari Master Perencanaan. Silakan isi realisasi dengan menekan Lihat Detail.</p>
                         </div>
                         <div className="flex gap-3 items-center">
+                            <Link 
+                                href={route('reports.store')}
+                                method="post"
+                                as="button"
+                                className="inline-flex items-center gap-2 px-5 py-3 bg-blue-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-xl border border-blue-500 hover:-translate-y-0.5"
+                            >
+                                <DocumentArrowUpIcon className="w-5 h-5" />
+                                Buat Laporan / Tarik Data
+                            </Link>
                             <a 
                                 href={route('reports.export')}
                                 className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-600 text-white rounded-xl text-sm font-black uppercase tracking-widest hover:bg-emerald-700 transition shadow-xl border border-emerald-500 hover:-translate-y-0.5"
@@ -180,11 +189,11 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-5">
-                                                    <div className="text-sm font-black text-gray-900 uppercase">{activity.nama_kegiatan_turunan || "-"}</div>
-                                                    <div className="text-[10px] text-gray-500 font-semibold mt-1">{activity.report_submission?.project?.name}</div>
+                                                    <div className="text-sm font-black text-gray-900 uppercase">{activity.report_submission?.project?.name || "-"}</div>
+                                                    <div className="text-[10px] text-gray-500 font-semibold mt-1">{activity.nama_kegiatan_turunan}</div>
                                                 </td>
                                                 <td className="px-6 py-5 max-w-xs truncate">
-                                                    <div className="text-xs text-gray-500 font-medium">{activity.deskripsi_kegiatan || "-"}</div>
+                                                    <div className="text-xs text-gray-500 font-medium">{activity.deskripsi_kegiatan ? activity.deskripsi_kegiatan.replace("Ditarik otomatis dari Penjadwalan: ", "") : "-"}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="text-sm font-bold text-gray-800">{activity.report_submission?.period?.month_year || "-"}</div>
@@ -203,7 +212,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                                 href={route('reports.submit_report', activity.report_submission_id)}
                                                                 method="post"
                                                                 as="button"
-                                                                className="inline-flex items-center px-3 py-1 bg-emerald-600 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition shadow"
+                                                                className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition shadow-sm whitespace-nowrap"
                                                             >
                                                                 Kirim Laporan
                                                             </Link>
@@ -229,7 +238,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                     <div className="flex justify-center items-center gap-2">
                                                         <Link
                                                             href={route('reports.show', activity.report_submission_id)}
-                                                            className="inline-flex items-center px-4 py-2 bg-gray-50 border border-gray-200 text-gray-700 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-blue-900 hover:text-white hover:border-blue-900 transition shadow-sm"
+                                                            className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition shadow-sm whitespace-nowrap"
                                                         >
                                                             Isi Realisasi & Detail
                                                         </Link>

@@ -48,7 +48,7 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
 
   const handleUpdateSubmit = (e) => {
       e.preventDefault();
-      putUpdate(route('reports.activities.update', { id: report.id, activity: selectedActivity.id }), {
+      putUpdate(route('activities.update', selectedActivity.id), {
           onSuccess: () => {
               setShowUpdateModal(false);
               resetUpdate();
@@ -184,7 +184,7 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
                             <tr key={act.id} className="hover:bg-gray-50 transition border-b border-gray-100 group">
                                 <td className="px-6 py-4">
                                     <div className="text-sm font-bold text-gray-900">{act.nama_kegiatan_turunan}</div>
-                                    <div className="text-xs text-gray-500 mt-1 max-w-xs truncate">{act.deskripsi_kegiatan}</div>
+                                    <div className="text-xs text-gray-500 mt-1 max-w-xs truncate">{act.deskripsi_kegiatan ? act.deskripsi_kegiatan.replace("Ditarik otomatis dari Penjadwalan: ", "") : ""}</div>
                                 </td>
                                 <td className="px-6 py-4 text-sm text-gray-500 font-medium">
                                     {act.rencana_start_date} <br/> s/d {act.rencana_end_date}
@@ -217,6 +217,16 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
                                         <PencilSquareIcon className="w-4 h-4" />
                                         Isi Data
                                     </button>
+                                    <Link
+                                        href={route("activities.destroy", act.id)}
+                                        method="delete"
+                                        as="button"
+                                        onBefore={() => confirm("Apakah Anda yakin ingin menghapus rincian kegiatan ini dari laporan?")}
+                                        className="inline-flex items-center justify-center w-8 h-8 bg-red-50 text-red-600 rounded-xl hover:bg-red-600 hover:text-white transition shadow-sm border border-red-100 ml-2"
+                                        title="Hapus Kegiatan"
+                                    >
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+                                    </Link>
                                 </td>
                             </tr>
                         ))}

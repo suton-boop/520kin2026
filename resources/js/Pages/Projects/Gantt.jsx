@@ -22,7 +22,7 @@ export default function Gantt({ project }) {
         } else {
             gantt.config.scales = [
                 {unit: "month", step: 1, format: "%F %Y"},
-                {unit: "day", step: 1, format: "%j"}
+                {unit: "day", step: 1, format: "%d"}
             ];
             gantt.config.min_column_width = 40;
         }
@@ -36,7 +36,12 @@ export default function Gantt({ project }) {
                 setShowImportModal(false);
                 reset('file');
                 gantt.clearAll();
-                gantt.load(route('projects.gantt_data', project.id));
+                    window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
+                            gantt.parse(resData.data);
+                            if (res.data && res.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            }
+                        }).catch(parseErr => alert("Parse error: " + parseErr.message));
             }
         });
     };
@@ -52,26 +57,73 @@ export default function Gantt({ project }) {
         // initial scale
         gantt.config.scales = [
             {unit: "month", step: 1, format: "%F %Y"},
-            {unit: "day", step: 1, format: "%j"}
+            {unit: "day", step: 1, format: "%d"}
         ];
         gantt.config.min_column_width = 40;
         gantt.config.date_format = "%Y-%m-%d %H:%i:%s";
-        gantt.config.auto_scheduling = true;
-        gantt.config.auto_scheduling_strict = true;
+            gantt.config.show_errors = false;
+        gantt.config.auto_scheduling = false;
+        gantt.config.auto_scheduling_strict = false;
         gantt.config.work_time = true;
 
         gantt.config.columns = [
-            {name: "wbs_code", label: "WBS", width: 60, template: function(task){ return task.wbs_code || gantt.getWBSCode(task); }},
+            {name: "wbs_code", label: "WBS", width: 60, template: function(task){ return task.wbs_code || ""; }},
             {name: "text", label: "Task Name", tree: true, width: 200, resize: true},
             {name: "start_date", label: "Start", align: "center", width: 90, resize: true},
             {name: "end_date", label: "Finish", align: "center", width: 90, resize: true},
             {name: "duration", label: "Durasi", align: "center", width: 60},
-            {name: "add", label: "", width: 44},
+            {name: "add", label: "+", width: 44},
             {name: "buttons", label: "Aksi", width: 90, template: function(task) {
                 return '<button class="edit-btn" style="color:blue; font-size:12px; font-weight:bold; margin-right:8px;" data-action="edit">Edit</button>' +
                        '<button class="del-btn" style="color:red; font-size:12px; font-weight:bold;" data-action="delete">Del</button>';
             }}
         ];
+
+        
+        gantt.attachEvent("onGridHeaderClick", function(name, e){
+            if (name === "add") {
+                window.axios.post(route('projects.task.store', project.id), {
+                    text: "Task Baru",
+                    start_date: project.start_date ? project.start_date : new Date().toISOString().slice(0,10),
+                    duration: 1,
+                    parent: 0,
+                    progress: 0
+                }).then(res => {
+                    gantt.clearAll();
+                    window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
+                            gantt.parse(resData.data);
+                            if (res.data && res.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            }
+                        }).catch(parseErr => alert("Parse error: " + parseErr.message));
+                }).catch(err => {
+                    alert("Error: " + (err.response?.status || "") + " " + (err.response?.data?.message || err.message));
+                });
+                return false;
+            }
+            return true;
+        });
+
+        gantt.attachEvent("onTaskCreated", function(task){
+            window.axios.post(route('projects.task.store', project.id), {
+                text: "Task Baru",
+                start_date: project.start_date ? project.start_date : new Date().toISOString().slice(0,10),
+                duration: 1,
+                parent: task.parent || 0,
+                progress: 0
+            }).then(res => {
+                gantt.clearAll();
+                window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
+                            gantt.parse(resData.data);
+                            if (res.data && res.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            }
+                        }).catch(parseErr => alert("Parse error: " + parseErr.message));
+            }).catch(err => {
+                alert("Error: " + (err.response?.status || "") + " " + (err.response?.data?.message || err.message));
+            });
+            return false;
+        });
 
         gantt.attachEvent("onTaskClick", function(id, e){
             var button = e.target.closest("[data-action]");
@@ -101,12 +153,16 @@ export default function Gantt({ project }) {
         gantt.init(ganttContainer.current);
         
         // Load data from backend
-        gantt.load(route('projects.gantt_data', project.id));
+        gantt.load(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime());
 
         // Setup DataProcessor to sync with Laravel backend
         const dp = gantt.createDataProcessor({
+            
             url: route('projects.gantt_data', project.id).replace('/gantt-data', ''),
             mode: "REST",
+            headers: {
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+            },
             headers: {
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
             }
@@ -126,7 +182,25 @@ export default function Gantt({ project }) {
                     <h2 className="text-xl font-bold text-gray-800">Perencanaan Project: {project.name}</h2>
                     <div className="space-x-2">
                         <a href={route('projects.index')} className="px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm hover:bg-gray-300 font-semibold inline-block">&larr; Kembali</a>
-                          <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200 font-semibold" onClick={() => gantt.createTask()}>+ Tambah WBS/Task</button>
+                          <button className="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm hover:bg-blue-200 font-semibold" onClick={() => {
+                            window.axios.post(route('projects.task.store', project.id), {
+                                text: "Task Baru",
+                                start_date: project.start_date ? project.start_date : new Date().toISOString().slice(0,10),
+                                duration: 1,
+                                parent: 0,
+                                progress: 0
+                            }).then(res => {
+                                gantt.clearAll();
+                    window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
+                            gantt.parse(resData.data);
+                            if (res.data && res.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            }
+                        }).catch(parseErr => alert("Parse error: " + parseErr.message));
+                            }).catch(err => {
+                                alert("Error: " + (err.response?.status || "") + " " + (err.response?.data?.message || err.message));
+                            });
+                        }}>+ Tambah WBS/Task</button>
                         <button className="px-3 py-1 bg-green-100 text-green-800 rounded text-sm hover:bg-green-200 font-semibold" onClick={() => setShowImportModal(true)}>Import Excel</button>
                         <select value={scale} onChange={handleScaleChange} className="px-3 py-1 bg-white border border-gray-300 text-gray-800 rounded text-sm font-semibold">
                             <option value="day">Harian (Tgl)</option>

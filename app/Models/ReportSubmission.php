@@ -10,7 +10,7 @@ class ReportSubmission extends Model
     use HasFactory;
 
     protected $fillable = [
-        'user_id', 'period_id', 'form_type', 'approval_status'
+        'user_id', 'period_id', 'form_type', 'approval_status', 'project_id'
     ];
 
     public function period()

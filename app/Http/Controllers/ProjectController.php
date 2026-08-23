@@ -44,6 +44,7 @@ class ProjectController extends Controller
                 $validated = $request->validate([
             'name' => 'required|string|max:255',
             'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
             'gugus_mutu_id' => 'nullable|exists:gugus_mutus,id',
         ]);
@@ -65,6 +66,7 @@ class ProjectController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after_or_equal:start_date',
             'description' => 'nullable|string',
             'gugus_mutu_id' => 'nullable|exists:gugus_mutus,id',
         ]);

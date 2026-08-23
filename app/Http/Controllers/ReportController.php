@@ -204,7 +204,7 @@ class ReportController extends Controller
                 'nama_kegiatan_turunan' => $task->name,
                 'rencana_start_date' => $task->start_date,
                 'rencana_end_date' => $endDate,
-                'deskripsi_kegiatan' => 'Ditarik otomatis dari Penjadwalan: ' . $project->name,
+                'deskripsi_kegiatan' => $project->name,
                 'status_akhir' => 'Belum',
                 'percent_complete' => $task->percent_complete,
                 'duration_days' => $task->duration_days,

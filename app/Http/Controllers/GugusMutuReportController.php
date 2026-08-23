@@ -12,18 +12,18 @@ class GugusMutuReportController extends Controller
     public function index(Request $request)
     {
         $periodId = $request->input('period_id');
-        if (!$periodId) {
+        if ($periodId === null) {
             $periodId = Period::orderBy('id', 'desc')->first()?->id;
         }
 
         $periods = Period::orderBy('id', 'desc')->get();
 
         $gugusMutus = GugusMutu::with(['users.reportSubmissions' => function ($query) use ($periodId) {
-            if ($periodId) {
+            if ($periodId && $periodId !== 'all') {
                 $query->where('period_id', $periodId);
             }
-            $query->withSum('activities', 'jumlah_target')
-                  ->withSum('activities', 'jumlah_capaian');
+            $query->withCount('activities')
+                  ->withCount(['activities as activities_completed_count' => function($q) { $q->where('status_akhir', 'Selesai')->orWhere('percent_complete', '>=', 100); }]);
         }])->get();
 
         $reportData = $gugusMutus->map(function ($gugus) {
@@ -32,8 +32,8 @@ class GugusMutuReportController extends Controller
             
             foreach ($gugus->users as $user) {
                 foreach ($user->reportSubmissions as $submission) {
-                    $totalTarget += $submission->activities_sum_jumlah_target ?? 0;
-                    $totalCapaian += $submission->activities_sum_jumlah_capaian ?? 0;
+                    $totalTarget += $submission->activities_count ?? 0;
+                    $totalCapaian += $submission->activities_completed_count ?? 0;
                 }
             }
 
@@ -49,7 +49,7 @@ class GugusMutuReportController extends Controller
         return Inertia::render('GugusMutuReport/Index', [
             'reportData' => $reportData,
             'periods' => $periods,
-            'selectedPeriodId' => $periodId ? (int) $periodId : null,
+            'selectedPeriodId' => $periodId,
         ]);
     }
 }
