@@ -1,4 +1,5 @@
 ﻿import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout";
+import Pagination from "@/Components/Pagination";
 import { Head, Link, useForm, router } from "@inertiajs/react";
 import {
   PlusIcon,
