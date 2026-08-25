@@ -10,6 +10,12 @@ use Illuminate\Support\Facades\Auth;
 class AnggaranController extends Controller
 {
     
+    
+    public function downloadTemplate()
+    {
+        return \Excel::download(new \App\Exports\AnggaranTemplateExport, 'Template_Import_WBS_Anggaran.xlsx');
+    }
+
     public function import(Request $request)
     {
         $user = Auth::user();

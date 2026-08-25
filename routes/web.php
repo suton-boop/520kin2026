@@ -79,6 +79,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/anggaran', [\App\Http\Controllers\AnggaranController::class, 'index'])->name('anggaran');
     Route::get('/anggaran/export', [\App\Http\Controllers\AnggaranController::class, 'export'])->name('anggaran.export');
     Route::post('/anggaran/import', [\App\Http\Controllers\AnggaranController::class, 'import'])->name('anggaran.import');
+    Route::get('/anggaran/import-template', [\App\Http\Controllers\AnggaranController::class, 'downloadTemplate'])->name('anggaran.template');
     Route::post('/anggaran', [\App\Http\Controllers\AnggaranController::class, 'store'])->name('anggaran.store');
     Route::put('/anggaran/{anggaran}', [\App\Http\Controllers\AnggaranController::class, 'update'])->name('anggaran.update');
     Route::post('/anggaran/{anggaran}/toggle-active', [\App\Http\Controllers\AnggaranController::class, 'toggleActive'])->name('anggaran.toggle_active');

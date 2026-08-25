@@ -191,7 +191,15 @@ export default function Index({ auth, anggaranData, isAdmin }) {
                         
                         {isAdmin && (
                             <>
+                                
+                                <a 
+                                    href={route('anggaran.template')}
+                                    className="bg-gray-100 text-gray-700 px-6 py-4 rounded-[24px] font-black text-[12px] uppercase tracking-widest hover:bg-gray-200 transition-transform hover:-translate-y-1"
+                                >
+                                    Template Excel
+                                </a>
                                 <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xlsx,.xls,.csv" />
+
                                 <button 
                                     onClick={() => fileInputRef.current?.click()}
                                     className="bg-purple-600 text-white px-8 py-4 rounded-[24px] font-black text-[12px] uppercase tracking-widest shadow-[0_20px_40px_-5px_rgba(147,51,234,0.4)] flex items-center hover:scale-105 transition-transform"
