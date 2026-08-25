@@ -21,7 +21,35 @@ const formatShortRp = (number) => {
     return formatRp(number);
 };
 
-export default function Index({ auth, anggaranData, isAdmin }) {
+
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null, errorInfo: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error, errorInfo) {
+    this.setState({ errorInfo });
+    console.error("React Error:", error, errorInfo);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{ padding: '20px', background: 'red', color: 'white' }}>
+          <h1>React Crashed!</h1>
+          <pre>{this.state.error && this.state.error.toString()}</pre>
+          <pre>{this.state.errorInfo && this.state.errorInfo.componentStack}</pre>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+export default function Index(props) { return <ErrorBoundary><IndexInner {...props} /></ErrorBoundary>; }
+function IndexInner({ auth, anggaranData, isAdmin }) {
     const [expandedRows, setExpandedRows] = useState({});
     
     
