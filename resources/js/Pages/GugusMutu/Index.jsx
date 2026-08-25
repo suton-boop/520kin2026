@@ -1,4 +1,5 @@
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
+import Pagination from '@/Components/Pagination';
 import { Head, useForm, usePage } from '@inertiajs/react';
 import { useState } from 'react';
 import { PlusIcon, PencilSquareIcon, TrashIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid';
