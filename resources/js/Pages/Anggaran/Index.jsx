@@ -24,6 +24,27 @@ const formatShortRp = (number) => {
 export default function Index({ auth, anggaranData, isAdmin }) {
     const [expandedRows, setExpandedRows] = useState({});
     
+    
+    const fileInputRef = React.useRef(null);
+    const handleFileChange = (e) => {
+        if (e.target.files[0]) {
+            router.post(route('anggaran.import'), {
+                file: e.target.files[0],
+            }, {
+                forceFormData: true,
+                preserveScroll: true,
+                onSuccess: () => {
+                    alert('Data Anggaran beserta WBS berhasil diimpor!');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                },
+                onError: (err) => {
+                    alert('Gagal mengimpor data: ' + (err.file || 'Terjadi kesalahan format'));
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                }
+            });
+        }
+    };
+
     // CRUD State
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
@@ -167,7 +188,20 @@ export default function Index({ auth, anggaranData, isAdmin }) {
                             </svg>
                             Download Excel
                         </a>
+                        
                         {isAdmin && (
+                            <>
+                                <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept=".xlsx,.xls,.csv" />
+                                <button 
+                                    onClick={() => fileInputRef.current?.click()}
+                                    className="bg-purple-600 text-white px-8 py-4 rounded-[24px] font-black text-[12px] uppercase tracking-widest shadow-[0_20px_40px_-5px_rgba(147,51,234,0.4)] flex items-center hover:scale-105 transition-transform"
+                                >
+                                    <DocumentTextIcon className="w-5 h-5 mr-3 text-purple-200" /> Import WBS
+                                </button>
+                            </>
+                        )}
+                        {isAdmin && (
+
                             <button 
                                 onClick={() => openAddModal()}
                                 className="bg-blue-900 text-white px-10 py-5 rounded-[24px] font-black text-[12px] uppercase tracking-widest shadow-[0_20px_40px_-5px_rgba(30,58,138,0.4)] flex items-center hover:scale-105 transition-transform"

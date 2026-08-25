@@ -9,6 +9,26 @@ use Illuminate\Support\Facades\Auth;
 
 class AnggaranController extends Controller
 {
+    
+    public function import(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->hasRole(['admin', 'super-admin', 'superadmin'])) {
+            return redirect()->back()->with('error', 'Hanya Admin yang dapat mengimpor anggaran.');
+        }
+
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls,csv|max:10240',
+        ]);
+
+        try {
+            Excel::import(new AppImportsAnggaranImport, $request->file('file'));
+            return redirect()->back()->with('success', 'Data Anggaran berhasil diimpor.');
+        } catch (Exception $e) {
+            return redirect()->back()->with('error', 'Terjadi kesalahan saat impor: ' . $e->getMessage());
+        }
+    }
+
     public function export(Request $request)
     {
         $query = Anggaran::query();
