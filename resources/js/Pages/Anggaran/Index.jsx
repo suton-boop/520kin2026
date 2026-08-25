@@ -178,10 +178,8 @@ export default function Index({ auth, anggaranData, isAdmin }) {
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-12">
-                    
-                    {/* Sidebar Stats */}
-                    <div className="space-y-8">
+                {/* Stats Cards Row */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 mb-8">
                         <div className="bg-blue-900 p-10 rounded-[40px] text-white shadow-2xl relative overflow-hidden group">
                             <WalletIcon className="absolute -right-8 -bottom-8 h-40 w-40 text-white/5 transform -rotate-12" />
                             <p className="text-[11px] font-black tracking-widest uppercase opacity-60 mb-4">TOTAL ALOKASI RKKL</p>
@@ -234,7 +232,7 @@ export default function Index({ auth, anggaranData, isAdmin }) {
                     </div>
 
                     {/* Main Content Table Area */}
-                    <div className="lg:col-span-3">
+                <div className="w-full">
                         <div className="bg-white rounded-xl shadow-xl border border-blue-50 overflow-hidden">
                             <div className="overflow-x-auto">
                                 <table className="w-full text-left border-collapse min-w-max text-sm">
@@ -351,10 +349,9 @@ export default function Index({ auth, anggaranData, isAdmin }) {
                                         ))}
                                     </tbody>
                                 </table>
-                            </div>
+                                                        </div>
                         </div>
                     </div>
-                </div>
             </main>
 
             <Modal show={isModalOpen} onClose={closeModal} maxWidth="4xl">
