@@ -44,11 +44,27 @@ class ReportController extends Controller
         }
 
                 if ($request->gugus_mutu_id) {
-            $query->whereHas('reportSubmission.user', function($q) use ($request) {
+            $query->whereHas('reportSubmission', function($q) use ($request) {
                 if ($request->gugus_mutu_id == 5) {
-                    $q->where('gugus_mutu_id', 5)->orWhereNull('gugus_mutu_id');
+                    $q->where(function($q2) {
+                        $q2->whereHas('project', function($q3) {
+                            $q3->where('gugus_mutu_id', 5)->orWhereNull('gugus_mutu_id');
+                        })->orWhere(function($q3) {
+                            $q3->whereDoesntHave('project')->whereHas('user', function($q4) {
+                                $q4->where('gugus_mutu_id', 5)->orWhereNull('gugus_mutu_id');
+                            });
+                        });
+                    });
                 } else {
-                    $q->where('gugus_mutu_id', $request->gugus_mutu_id);
+                    $q->where(function($q2) use ($request) {
+                        $q2->whereHas('project', function($q3) use ($request) {
+                            $q3->where('gugus_mutu_id', $request->gugus_mutu_id);
+                        })->orWhere(function($q3) use ($request) {
+                            $q3->whereDoesntHave('project')->whereHas('user', function($q4) use ($request) {
+                                $q4->where('gugus_mutu_id', $request->gugus_mutu_id);
+                            });
+                        });
+                    });
                 }
             });
         }
