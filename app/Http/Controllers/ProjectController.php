@@ -92,7 +92,7 @@ class ProjectController extends Controller
             Excel::import(new ProjectTaskImport($project->id), $request->file('file'));
             return redirect()->back()->with('success', 'Data perencanaan berhasil diimpor!');
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Gagal mengimpor: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['file' => 'Gagal mengimpor: ' . $e->getMessage()]);
         }
     }
     
@@ -111,7 +111,7 @@ class ProjectController extends Controller
             \Excel::import(new \App\Imports\ProjectImport, $request->file('file'));
             return redirect()->back()->with('success', 'Berhasil mengimpor data proyek.');
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors(['error' => 'Gagal mengimpor: ' . $e->getMessage()]);
+            return redirect()->back()->withErrors(['file' => 'Gagal mengimpor: ' . $e->getMessage()]);
         }
     }
 
