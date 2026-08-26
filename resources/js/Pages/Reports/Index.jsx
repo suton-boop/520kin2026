@@ -185,7 +185,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                             <tr key={activity.id} className="hover:bg-gray-50/50 transition border-b border-gray-100 group">
                                                 <td className="px-6 py-5">
                                                     <span className="text-xs font-bold text-blue-900 bg-blue-50 px-3 py-1 rounded-lg border border-blue-100 uppercase tracking-widest">
-                                                        {activity.report_submission?.user?.gugus_mutu?.name || "Umum"}
+                                                        {activity.report_submission?.project?.gugus_mutu?.name || activity.report_submission?.user?.gugus_mutu?.name || "Umum"}
                                                     </span>
                                                 </td>
                                                 <td className="px-6 py-5">
@@ -193,7 +193,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                     <div className="text-[10px] text-gray-500 font-semibold mt-1">{activity.nama_kegiatan_turunan}</div>
                                                 </td>
                                                 <td className="px-6 py-5 max-w-xs truncate">
-                                                    <div className="text-xs text-gray-500 font-medium">{activity.deskripsi_kegiatan ? activity.deskripsi_kegiatan.replace("Ditarik otomatis dari Penjadwalan: ", "") : "-"}</div>
+                                                    <div className="text-xs text-gray-500 font-medium">{activity.deskripsi_kegiatan ? activity.deskripsi_kegiatan.replace("Ditarik otomatis dari Penjadwalan: ", "") : (activity.report_submission?.project?.description || "-")}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="text-sm font-bold text-gray-800">{activity.report_submission?.period?.month_year || "-"}</div>

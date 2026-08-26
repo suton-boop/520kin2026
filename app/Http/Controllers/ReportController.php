@@ -19,7 +19,7 @@ class ReportController extends Controller
         $user = Auth::user();
         
         // Base Query for Activities
-        $query = Activity::with(['reportSubmission.period', 'reportSubmission.user.gugusMutu', 'reportSubmission.project']);
+        $query = Activity::with(['reportSubmission.period', 'reportSubmission.user.gugusMutu', 'reportSubmission.project.gugusMutu']);
 
         if ($user->hasRole(['admin', 'super-admin', 'superadmin']) || ($user->hasRole('manager') && empty($user->gugus_mutu_id))) {
             // Admin melihat semua kegiatan
@@ -277,7 +277,7 @@ class ReportController extends Controller
     public function export()
     {
         $user = Auth::user();
-        $query = Activity::with(['reportSubmission.user.gugusMutu', 'reportSubmission.period', 'reportSubmission.project']);
+        $query = Activity::with(['reportSubmission.user.gugusMutu', 'reportSubmission.period', 'reportSubmission.project.gugusMutu']);
 
         if ($user->hasRole(['admin', 'super-admin'])) {
             // Admin sees all
