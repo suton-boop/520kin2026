@@ -197,10 +197,10 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                     <div className="text-sm font-bold text-gray-800">{activity.report_submission?.period?.month_year || "-"}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
-                                                    <div className="text-sm font-bold text-gray-800">{activity.realisasi_start_date || "-"}</div>
+                                                    <div className="text-sm font-bold text-gray-800">{activity.realisasi_start_date ? activity.realisasi_start_date.split("-").reverse().join("/") : "-"}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
-                                                    <div className="text-sm font-bold text-gray-800">{activity.realisasi_end_date || "-"}</div>
+                                                    <div className="text-sm font-bold text-gray-800">{activity.realisasi_end_date ? activity.realisasi_end_date.split("-").reverse().join("/") : "-"}</div>
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="flex flex-col items-start gap-2">
