@@ -156,8 +156,8 @@ export default function Index({ projects, gugusMutus, filters }) {
                                     <tr key={project.id} className="border-b hover:bg-gray-50">
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-blue-900">{project.gugus_mutu ? project.gugus_mutu.name : '-'}</td>
                                             <td className="px-6 py-4 font-bold">{project.name}</td>
-                                        <td className="px-6 py-4">{project.start_date || '-'}</td>
-                                        <td className="px-6 py-4">{project.end_date || '-'}</td>
+                                        <td className="px-6 py-4">{project.start_date ? project.start_date.split('-').reverse().join('/') : '-'}</td>
+                                        <td className="px-6 py-4">{project.end_date ? project.end_date.split('-').reverse().join('/') : '-'}</td>
                                         <td className="px-6 py-4">{project.description || '-'}</td>
                                         <td className="px-6 py-4 text-right space-x-3 flex justify-end">
                                             <Link 
