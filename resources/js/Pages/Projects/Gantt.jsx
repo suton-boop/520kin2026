@@ -61,6 +61,7 @@ export default function Gantt({ project }) {
         ];
         gantt.config.min_column_width = 40;
         gantt.config.date_format = "%Y-%m-%d %H:%i:%s";
+        gantt.config.date_grid = "%d/%m/%Y";
             gantt.config.show_errors = false;
         gantt.config.auto_scheduling = false;
         gantt.config.auto_scheduling_strict = false;
