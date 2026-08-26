@@ -124,7 +124,9 @@ class ProjectTaskImport implements ToModel, WithHeadingRow
     private function transformNumber($value)
     {
         if (empty($value)) return 0;
-        $val = preg_replace("/[^0-9.]/", "", $value);
+        if (is_numeric($value)) return (float) $value;
+        $val = str_replace(",", ".", $value);
+        $val = preg_replace("/[^0-9.eE+-]/", "", $val);
         return (float) $val;
     }
 }
