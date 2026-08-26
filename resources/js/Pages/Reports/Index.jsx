@@ -170,7 +170,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                     <tr>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Devisi / GM</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Nama Kegiatan</th>
-                                        <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800 max-w-xs">Deskripsi</th>
+                                        
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Periode</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tgl Realisasi Mulai</th>
                                         <th className="px-6 py-5 bg-blue-900 text-[10px] font-black text-blue-50 uppercase tracking-widest border-b border-blue-800">Tgl Realisasi Selesai</th>
@@ -192,9 +192,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                     <div className="text-sm font-black text-gray-900 uppercase">{activity.report_submission?.project?.name || "-"}</div>
                                                     <div className="text-[10px] text-gray-500 font-semibold mt-1">{activity.nama_kegiatan_turunan}</div>
                                                 </td>
-                                                <td className="px-6 py-5 max-w-xs truncate">
-                                                    <div className="text-xs text-gray-500 font-medium">{activity.deskripsi_kegiatan ? activity.deskripsi_kegiatan.replace("Ditarik otomatis dari Penjadwalan: ", "") : (activity.report_submission?.project?.description || "-")}</div>
-                                                </td>
+                                                
                                                 <td className="px-6 py-5">
                                                     <div className="text-sm font-bold text-gray-800">{activity.report_submission?.period?.month_year || "-"}</div>
                                                 </td>
@@ -248,7 +246,7 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                         ))
                                     ) : (
                                         <tr>
-                                            <td colSpan="9" className="px-6 py-20 text-center">
+                                            <td colSpan="8" className="px-6 py-20 text-center">
                                                 <div className="flex flex-col items-center justify-center">
                                                     <div className="w-20 h-20 rounded-full bg-gray-50 flex items-center justify-center mb-4 border border-gray-100 shadow-inner">
                                                         <ArrowPathIcon className="w-10 h-10 text-gray-300" />
