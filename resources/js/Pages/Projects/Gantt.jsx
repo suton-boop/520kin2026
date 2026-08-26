@@ -38,8 +38,8 @@ export default function Gantt({ project }) {
                 gantt.clearAll();
                     window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
                             gantt.parse(resData.data);
-                            if (res.data && res.data.tid) {
-                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            if (resData.data && resData.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(resData.data.tid); gantt.selectTask(resData.data.tid); gantt.showLightbox(resData.data.tid); } catch(e){ console.error(e); } }, 200);
                             }
                         }).catch(parseErr => alert("Parse error: " + parseErr.message));
             }
@@ -92,8 +92,8 @@ export default function Gantt({ project }) {
                     gantt.clearAll();
                     window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
                             gantt.parse(resData.data);
-                            if (res.data && res.data.tid) {
-                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            if (resData.data && resData.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(resData.data.tid); gantt.selectTask(resData.data.tid); gantt.showLightbox(resData.data.tid); } catch(e){ console.error(e); } }, 200);
                             }
                         }).catch(parseErr => alert("Parse error: " + parseErr.message));
                 }).catch(err => {
@@ -115,8 +115,8 @@ export default function Gantt({ project }) {
                 gantt.clearAll();
                 window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
                             gantt.parse(resData.data);
-                            if (res.data && res.data.tid) {
-                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            if (resData.data && resData.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(resData.data.tid); gantt.selectTask(resData.data.tid); gantt.showLightbox(resData.data.tid); } catch(e){ console.error(e); } }, 200);
                             }
                         }).catch(parseErr => alert("Parse error: " + parseErr.message));
             }).catch(err => {
@@ -193,8 +193,8 @@ export default function Gantt({ project }) {
                                 gantt.clearAll();
                     window.axios.get(route('projects.gantt_data', project.id) + '?t=' + new Date().getTime()).then(resData => {
                             gantt.parse(resData.data);
-                            if (res.data && res.data.tid) {
-                                setTimeout(() => { try { gantt.showTask(res.data.tid); gantt.selectTask(res.data.tid); gantt.showLightbox(res.data.tid); } catch(e){ console.error(e); } }, 200);
+                            if (resData.data && resData.data.tid) {
+                                setTimeout(() => { try { gantt.showTask(resData.data.tid); gantt.selectTask(resData.data.tid); gantt.showLightbox(resData.data.tid); } catch(e){ console.error(e); } }, 200);
                             }
                         }).catch(parseErr => alert("Parse error: " + parseErr.message));
                             }).catch(err => {
