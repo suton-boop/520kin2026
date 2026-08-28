@@ -204,10 +204,10 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                 </td>
                                                 <td className="px-6 py-5">
                                                     <div className="flex flex-col items-start gap-2">
-                                                        {getStatusBadge(activity.report_submission?.approval_status)}
-                                                        {(activity.report_submission?.approval_status === "Draft" || activity.report_submission?.approval_status?.includes("Rejected")) && (
+                                                        {getStatusBadge(activity.approval_status)}
+                                                        {(!activity.approval_status || activity.approval_status === "Draft" || activity.approval_status?.includes("Rejected")) && (
                                                             <Link
-                                                                href={route('reports.submit_report', activity.report_submission_id)}
+                                                                href={route('activities.submit_report', activity.id)}
                                                                 method="post"
                                                                 as="button"
                                                                 className="inline-flex items-center justify-center px-3 py-1.5 bg-emerald-600 text-white rounded-md text-[10px] font-black uppercase tracking-widest hover:bg-emerald-700 transition shadow-sm whitespace-nowrap"
@@ -215,10 +215,10 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                                 Kirim Laporan
                                                             </Link>
                                                         )}
-                                                        {activity.report_submission?.approval_status === "Pending" && (userRole === "admin" || userRole === "super-admin" || userRole === "manager") && (
+                                                        {activity.approval_status === "Pending" && (userRole === "admin" || userRole === "super-admin" || userRole === "manager") && (
                                                             <div className="flex gap-2 mt-1">
                                                                 <Link
-                                                                    href={route('approvals.approve', activity.report_submission_id)}
+                                                                    href={route('approvals.approve', activity.id)}
                                                                     method="post"
                                                                     as="button"
                                                                     className="inline-flex items-center px-3 py-1 bg-blue-600 text-white rounded text-[10px] font-black uppercase tracking-widest hover:bg-blue-700 transition shadow"
@@ -241,11 +241,11 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                             Isi Realisasi & Detail
                                                         </Link>
 
-                                                          {activity.report_submission?.approval_status === 'Approved' && (
+                                                          {(activity.approval_status === 'Approved' || activity.approval_status === 'approved') && (
                                                               <button
                                                                   onClick={() => {
                                                                       if(confirm('Apakah Anda yakin ingin mengembalikan laporan ini menjadi Draft?')) {
-                                                                          router.post(route('reports.revert', activity.report_submission_id));
+                                                                          router.post(route('activities.revert', activity.id));
                                                                       }
                                                                   }}
                                                                   className="inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-sm whitespace-nowrap ml-2"
