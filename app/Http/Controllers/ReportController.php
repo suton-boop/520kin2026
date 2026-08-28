@@ -313,14 +313,14 @@ class ReportController extends Controller
 
         public function submitActivityReport(Request $request, $id)
     {
-        $activity = AppModelsActivity::findOrFail($id);
+        $activity = \App\Models\Activity::findOrFail($id);
         $activity->update(['approval_status' => 'Pending']);
         return back()->with('success', 'Kegiatan berhasil dikirim untuk divalidasi.');
     }
 
     public function revertActivityToDraft(Request $request, $id)
     {
-        $activity = AppModelsActivity::findOrFail($id);
+        $activity = \App\Models\Activity::findOrFail($id);
         $activity->update(['approval_status' => 'Draft']);
         return back()->with('success', 'Kegiatan berhasil dikembalikan ke status Draft.');
     }
