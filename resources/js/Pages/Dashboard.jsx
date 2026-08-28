@@ -131,7 +131,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                     <h3 className="text-3xl font-black text-blue-900 mb-12 text-center uppercase tracking-widest italic decoration-blue-500 decoration-8 underline-offset-8">Statistik Serapan Anggaran</h3>
                                     <div className="flex justify-center space-x-12 text-[11px] mb-10 font-black text-gray-400 italic bg-white py-4 rounded-full w-max mx-auto px-12 border border-blue-50 shadow-sm uppercase tracking-widest">
                                         <div className="flex items-center"><div className="w-5 h-5 bg-blue-500 rounded-full mr-4 shadow-md border-2 border-white"></div> ALOKASI</div>
-                                        <div className="flex items-center"><div className="w-5 h-5 bg-red-500 rounded-full mr-4 shadow-md border-2 border-white"></div> REALISASI</div>
+                                        <div className="flex items-center"><div className="w-5 h-5 bg-green-500 rounded-full mr-4 shadow-md border-2 border-white"></div> REALISASI</div>
                                     </div>
                                     <div className="h-[450px] w-full">
                                         <ResponsiveContainer width="100%" height="100%">
@@ -151,7 +151,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                                 <YAxis hide />
                                                 <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.3)', fontWeight: 'bold' }} />
                                                 <Area type="monotone" dataKey="target" stroke={budgetColor} strokeWidth={4} fillOpacity={1} fill="url(#colorTarget)" />
-                                                <Area type="monotone" dataKey="realisasi" stroke={realBudgetColor} strokeWidth={5} fillOpacity={1} fill="url(#colorReal)" />
+                                                <Area type="monotone" dataKey="realisasi" stroke={realBudgetColor} strokeWidth={5} fillOpacity={1} fill="url(#colorReal)" / type="monotone" dot={{ r: 5, fill: "#ef4444", strokeWidth: 2 }} activeDot={{ r: 7 }} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
@@ -322,7 +322,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                                   <td className="px-10 py-10 font-black text-amber-800 align-top text-xs border-r border-amber-50 uppercase">{act.project_task?.project?.gugus_mutu?.name || act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                   <td className="px-10 py-10 align-top border-r border-gray-50">
                                                       <div className="flex items-start">
-                                                          <div className="bg-red-500/10 p-3 rounded-2xl mr-5 shadow-inner"><ExclamationTriangleIcon className="h-5 w-5 text-red-600" /></div>
+                                                          <div className="bg-green-500/10 p-3 rounded-2xl mr-5 shadow-inner"><ExclamationTriangleIcon className="h-5 w-5 text-red-600" /></div>
                                                           <div>
                                                               <p className="font-black text-blue-900 text-[13px] mb-3 uppercase leading-none tracking-tight italic">{act.nama_kegiatan_turunan}</p>
                                                               <div className="bg-red-50 p-4 rounded-2xl border border-red-100/50">
