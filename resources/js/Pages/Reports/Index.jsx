@@ -240,6 +240,19 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                                         >
                                                             Isi Realisasi & Detail
                                                         </Link>
+
+                                                          {activity.report_submission?.approval_status === 'Approved' && (
+                                                              <button
+                                                                  onClick={() => {
+                                                                      if(confirm('Apakah Anda yakin ingin mengembalikan laporan ini menjadi Draft?')) {
+                                                                          router.post(route('reports.revert', activity.report_submission_id));
+                                                                      }
+                                                                  }}
+                                                                  className="inline-flex items-center justify-center px-4 py-2 bg-orange-500 text-white rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-orange-600 transition shadow-sm whitespace-nowrap ml-2"
+                                                              >
+                                                                  Kembalikan ke Draft
+                                                              </button>
+                                                          )}
                                                     </div>
                                                 </td>
                                             </tr>
