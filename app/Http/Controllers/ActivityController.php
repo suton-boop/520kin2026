@@ -27,6 +27,7 @@ class ActivityController extends Controller
             'realisasi_start_date' => 'nullable|date',
             'realisasi_end_date' => 'nullable|date',
             'status_akhir' => 'nullable|string',
+            'anggaran_realisasi' => 'nullable|numeric',
         ]);
 
         $report->activities()->create($validated);
@@ -53,6 +54,7 @@ class ActivityController extends Controller
             'realisasi_start_date' => 'nullable|date',
             'realisasi_end_date' => 'nullable|date',
             'status_akhir' => 'nullable|string',
+            'anggaran_realisasi' => 'nullable|numeric',
         ]);
 
         $activity->update($validated);

@@ -24,8 +24,9 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
         realisasi_end_date: '',
         status_akhir: 'Belum Mulai',
       kendala: '',
-      mitigasi: ''
-  });
+      mitigasi: '',
+        anggaran_realisasi: ''
+    });
 
   const handleImport = (e) => {
       e.preventDefault();
@@ -41,8 +42,9 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
             realisasi_end_date: activity.realisasi_end_date || '',
             status_akhir: activity.status_akhir || 'Belum Mulai',
           kendala: activity.kendala || '',
-          mitigasi: activity.mitigasi || ''
-      });
+          mitigasi: activity.mitigasi || '',
+            anggaran_realisasi: activity.anggaran_realisasi || ''
+        });
       setShowUpdateModal(true);
   };
 
@@ -335,7 +337,18 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
                               <option value="Proses">Proses</option>
                               <option value="Selesai">Selesai</option>
                           </select>
-                      </div>
+                        </div>
+                        </div>
+                        <div>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nominal Serapan Anggaran (Rp)</label>
+                            <input 
+                                type="number" 
+                                className="w-full border-gray-200 rounded-xl text-sm font-semibold text-gray-800 focus:ring-blue-500 focus:border-blue-500 shadow-inner p-3"
+                                value={updateData.anggaran_realisasi}
+                                onChange={e => setUpdateData('anggaran_realisasi', e.target.value)}
+                                placeholder="Cth: 5000000"
+                            />
+                        </div>
                   </div>
 
                   <div className="mb-5">

@@ -132,18 +132,31 @@ class DashboardController extends Controller
         // Monthly Budget Stats (Detailed)
         $budgetStats = [];
         $totalAlokasiGlobal = \App\Models\Anggaran::sum('anggaran_alokasi');
-        $totalRealisasiGlobal = \App\Models\Anggaran::sum('anggaran_realisasi');
-
+        
+        // CUMULATIVE calculation
+        $cumulativeReal = 0;
+        
         foreach ($months as $index => $m) {
             $monthNum = $index + 1;
+            
+            // Alokasi is still linearly distributed for target curve
             $monthTarget = $totalAlokasiGlobal > 0 ? round(($totalAlokasiGlobal / 12) * $monthNum) : 0;
-            $monthReal = $totalRealisasiGlobal > 0 ? round(($totalRealisasiGlobal / 12) * $monthNum * 0.82) : 0;
+            
+            // Realisasi comes from actual activities that are approved in this month (using realisasi_end_date)
+            // But if realisasi_end_date is null, we might fallback to updated_at or not count it.
+            // Let's sum for this specific month, then add to cumulative.
+            $monthRealAdded = \App\Models\Activity::where('approval_status', 'Approved')
+                ->whereYear('realisasi_end_date', $year)
+                ->whereMonth('realisasi_end_date', $monthNum)
+                ->sum('anggaran_realisasi');
+                
+            $cumulativeReal += $monthRealAdded;
             
             $budgetStats[] = [
                 'name' => $m,
                 'target' => $monthTarget,
-                'realisasi' => $monthReal,
-                'persentase' => $monthTarget > 0 ? round(($monthReal / $monthTarget) * 100) : 0
+                'realisasi' => $cumulativeReal,
+                'persentase' => $monthTarget > 0 ? round(($cumulativeReal / $monthTarget) * 100) : 0
             ];
         }
 

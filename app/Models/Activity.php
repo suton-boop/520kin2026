@@ -30,6 +30,7 @@ class Activity extends Model
         'persiapan',
         'realisasi_start_date',
         'realisasi_end_date',
+        'anggaran_realisasi',
         'laporan',
                         'status_akhir',
         'kendala',
