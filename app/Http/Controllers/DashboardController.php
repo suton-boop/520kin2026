@@ -50,11 +50,7 @@ class DashboardController extends Controller
             }
         }
 
-        if ($gugusMutuId) {
-             $reportQuery->whereHas('user', function($q) use ($gugusMutuId) {
-                  $q->where('gugus_mutu_id', $gugusMutuId);
-             });
-        }
+
 
         $submissions = $reportQuery->get();
         $submissionIds = $submissions->pluck('id');
@@ -62,6 +58,18 @@ class DashboardController extends Controller
         $allActivities = Activity::with(['budget', 'reportSubmission.user.gugusMutu', 'reportSubmission.period', 'projectTask.project.gugusMutu'])->whereIn('report_submission_id', $submissionIds)
             ->orderBy('kode_pmo', 'asc')
             ->get();
+
+        if ($gugusMutuId) {
+            $allActivities = $allActivities->filter(function($act) use ($gugusMutuId) {
+                 $actGmId = null;
+                 if ($act->projectTask && $act->projectTask->project) {
+                     $actGmId = $act->projectTask->project->gugus_mutu_id;
+                 } elseif ($act->reportSubmission && $act->reportSubmission->user) {
+                     $actGmId = $act->reportSubmission->user->gugus_mutu_id;
+                 }
+                 return $actGmId == $gugusMutuId;
+            })->values();
+        }
 
         // Calculate Late Tasks
         $lateTasks = $allActivities->filter(function($act) use ($today) {
