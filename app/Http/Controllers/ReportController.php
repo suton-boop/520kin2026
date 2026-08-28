@@ -110,8 +110,13 @@ class ReportController extends Controller
     public function store(Request $request)
     {
         $period = \App\Models\Period::firstOrCreate(
-            ['month_year' => '01-2026'], 
-            ['start_date' => '2026-01-01', 'end_date' => '2026-12-31']
+            ['month_year' => [
+                '01' => 'Januari', '02' => 'Februari', '03' => 'Maret',
+                '04' => 'April', '05' => 'Mei', '06' => 'Juni',
+                '07' => 'Juli', '08' => 'Agustus', '09' => 'September',
+                '10' => 'Oktober', '11' => 'November', '12' => 'Desember'
+            ][now()->format('m')] . ' ' . now()->format('Y')], 
+            ['start_date' => now()->startOfMonth()->format('Y-m-d'), 'end_date' => now()->endOfMonth()->format('Y-m-d')]
         );
         $report = ReportSubmission::firstOrCreate([
             'user_id' => Auth::id(),
