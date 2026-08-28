@@ -140,8 +140,15 @@ class DashboardController extends Controller
         foreach ($months as $index => $m) {
             $monthNum = $index + 1;
             
-            // Alokasi is still linearly distributed for target curve
-            $monthTarget = $totalAlokasiGlobal > 0 ? round(($totalAlokasiGlobal / 12) * $monthNum) : 0;
+            // Alokasi is distributed using a normalized S-Curve (Logistic Function) for a natural project baseline
+            $k = 0.835; // Steepness
+            $t0 = 6.5; // Midpoint
+            $P0 = 1 / (1 + exp(-$k * (0 - $t0)));
+            $P12 = 1 / (1 + exp(-$k * (12 - $t0)));
+            $Pt = 1 / (1 + exp(-$k * ($monthNum - $t0)));
+            
+            $sCurvePercent = ($Pt - $P0) / ($P12 - $P0);
+            $monthTarget = $totalAlokasiGlobal > 0 ? round($totalAlokasiGlobal * $sCurvePercent) : 0;
             
             // Realisasi comes from actual activities that are approved in this month (using realisasi_end_date)
             // But if realisasi_end_date is null, we might fallback to updated_at or not count it.
