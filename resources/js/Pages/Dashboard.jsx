@@ -150,8 +150,8 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                                 <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 900, fill: '#6B7280' }} />
                                                 <YAxis hide />
                                                 <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.3)', fontWeight: 'bold' }} />
-                                                <Area type="monotone" dataKey="target" stroke={budgetColor} strokeWidth={4} fillOpacity={1} fill="url(#colorTarget)" />
-                                                <Area type="monotone" dataKey="realisasi" stroke={realBudgetColor} strokeWidth={5} fillOpacity={1} fill="url(#colorReal)"  dot={{ r: 5, fill: "#10b981", strokeWidth: 2 }} activeDot={{ r: 7 }} />
+                                                <Area type="monotone" dataKey="target" stroke={budgetColor} strokeWidth={7} fillOpacity={1} fill="url(#colorTarget)" dot={{ r: 10, fill: budgetColor, stroke: '#FFF', strokeWidth: 4 }} activeDot={{ r: 12 }} />
+                                                <Area type="monotone" dataKey="realisasi" stroke={realBudgetColor} strokeWidth={7} fillOpacity={1} fill="url(#colorReal)" dot={{ r: 10, fill: realBudgetColor, stroke: '#FFF', strokeWidth: 4 }} activeDot={{ r: 12 }} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
