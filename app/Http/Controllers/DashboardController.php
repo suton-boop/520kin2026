@@ -59,7 +59,7 @@ class DashboardController extends Controller
         $submissions = $reportQuery->get();
         $submissionIds = $submissions->pluck('id');
 
-        $allActivities = Activity::with(['budget', 'reportSubmission.user.gugusMutu', 'reportSubmission.period'])->whereIn('report_submission_id', $submissionIds)
+        $allActivities = Activity::with(['budget', 'reportSubmission.user.gugusMutu', 'reportSubmission.period', 'projectTask.project.gugusMutu'])->whereIn('report_submission_id', $submissionIds)
             ->orderBy('kode_pmo', 'asc')
             ->get();
 

@@ -201,7 +201,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                     <tbody className="text-[11px] font-bold">
                                         {paginatedData.map(act => (
                                             <tr key={act.id} className="border-b border-gray-100 hover:bg-blue-50/30 transition-all group">
-                                                <td className="px-8 py-8 font-black text-blue-800 align-top text-xs border-r border-gray-50 uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
+                                                <td className="px-8 py-8 font-black text-blue-800 align-top text-xs border-r border-gray-50 uppercase">{act.project_task?.project?.gugus_mutu?.name || act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                 <td className="px-8 py-8 align-top border-r border-gray-50">
                                                     <div className="space-y-2">
                                                         <p className="font-black text-gray-900 text-[13px] leading-snug uppercase tracking-tight group-hover:text-blue-700">{act.nama_kegiatan_turunan}</p>
@@ -257,7 +257,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                          
                                          return (
                                              <div key={act.id} className="flex h-12 items-center bg-gray-50/50 rounded-2xl border border-gray-100 group hover:bg-amber-50/50 transition-all">
-                                                 <div className="w-44 flex-shrink-0 text-[10px] font-black px-6 text-blue-900 uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</div>
+                                                 <div className="w-44 flex-shrink-0 text-[10px] font-black px-6 text-blue-900 uppercase">{act.project_task?.project?.gugus_mutu?.name || act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</div>
                                                  <div className="flex-1 relative h-6 mr-4">
                                                      <div className="absolute h-6 rounded-full bg-blue-600 shadow-xl top-0 border-2 border-white group-hover:bg-blue-700 transition-all" style={{ left: marginLeft + 'px', width: width + 'px' }}>
                                                          <div className="flex items-center justify-center h-full text-[8px] font-black text-white uppercase italic tracking-widest opacity-30 group-hover:opacity-100">PROG: {act.kode_pmo}</div>
@@ -284,7 +284,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                      <tbody>
                                          {paginatedData.length > 0 ? paginatedData.map(task => (
                                              <tr key={task.id} className="border-b border-red-50 hover:bg-red-50/50 transition-all">
-                                                 <td className="px-10 py-10 font-black text-red-800 align-top text-xs uppercase">{task.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
+                                                 <td className="px-10 py-10 font-black text-red-800 align-top text-xs uppercase">{task.project_task?.project?.gugus_mutu?.name || task.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                  <td className="px-10 py-10">
                                                      <p className="font-extrabold text-gray-900 text-[14px] mb-3 uppercase tracking-tighter">{task.nama_kegiatan_turunan}</p>
                                                      <div className="flex items-center space-x-3">
@@ -319,7 +319,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                       <tbody className="bg-white">
                                           {paginatedData.length > 0 ? paginatedData.map(act => (
                                               <tr key={act.id} className="border-b border-amber-50 hover:bg-amber-100/10 transition-all">
-                                                  <td className="px-10 py-10 font-black text-amber-800 align-top text-xs border-r border-amber-50 uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
+                                                  <td className="px-10 py-10 font-black text-amber-800 align-top text-xs border-r border-amber-50 uppercase">{act.project_task?.project?.gugus_mutu?.name || act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                   <td className="px-10 py-10 align-top border-r border-gray-50">
                                                       <div className="flex items-start">
                                                           <div className="bg-red-500/10 p-3 rounded-2xl mr-5 shadow-inner"><ExclamationTriangleIcon className="h-5 w-5 text-red-600" /></div>
@@ -372,7 +372,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
 
                                               return (
                                                   <tr key={act.id} className="border-b border-red-50 hover:bg-red-100/10 transition-all">
-                                                      <td className="px-10 py-12 font-black text-red-800 align-top text-sm uppercase">{act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
+                                                      <td className="px-10 py-12 font-black text-red-800 align-top text-sm uppercase">{act.project_task?.project?.gugus_mutu?.name || act.report_submission?.user?.gugus_mutu?.name || "UMUM"}</td>
                                                       <td className="px-10 py-12 align-top">
                                                           <p className="font-black text-blue-900 text-[16px] mb-4 uppercase leading-none tracking-tight italic drop-shadow-sm">{act.nama_kegiatan_turunan}</p>
                                                           <div className="flex items-center text-[10px] font-black text-gray-400 uppercase tracking-widest bg-gray-50/80 p-3 rounded-2xl w-max border border-gray-100">
