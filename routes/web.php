@@ -32,6 +32,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Rute Tarik Data dari Penjadwalan
     Route::post('Project/{id}/pull', [\App\Http\Controllers\ReportController::class, 'pullFromSchedule'])->name('reports.pull');
+    Route::post('activities/{id}/submit-report', [\App\Http\Controllers\ReportController::class, 'submitActivityReport'])->name('activities.submit_report');
+    Route::post('activities/{id}/revert', [\App\Http\Controllers\ReportController::class, 'revertActivityToDraft'])->name('activities.revert');
 
     // Approvals Routes
     Route::get('/approvals', [\App\Http\Controllers\ApprovalController::class, 'index'])->name('approvals.index');

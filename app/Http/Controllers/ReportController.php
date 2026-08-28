@@ -310,17 +310,18 @@ class ReportController extends Controller
         $activities = $query->get();
         return \Excel::download(new \App\Exports\ReportsExport($activities), 'Daftar_Laporan.xlsx');
     }
+
+        public function submitActivityReport(Request $request, $id)
+    {
+        $activity = AppModelsActivity::findOrFail($id);
+        $activity->update(['approval_status' => 'Pending']);
+        return back()->with('success', 'Kegiatan berhasil dikirim untuk divalidasi.');
+    }
+
+    public function revertActivityToDraft(Request $request, $id)
+    {
+        $activity = AppModelsActivity::findOrFail($id);
+        $activity->update(['approval_status' => 'Draft']);
+        return back()->with('success', 'Kegiatan berhasil dikembalikan ke status Draft.');
+    }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use App\Models\ReportSubmission;
+use App\Models\Activity;
 use Illuminate\Support\Facades\Auth;
 
 class ApprovalController extends Controller
@@ -12,12 +12,12 @@ class ApprovalController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $query = ReportSubmission::with(['user.gugusMutu', 'period', 'activities']);
+        $query = Activity::with(['reportSubmission.user.gugusMutu', 'reportSubmission.period']);
 
         if ($user->hasRole(['admin', 'super-admin'])) {
             $query->whereIn('approval_status', ['Pending', 'Approved', 'Rejected']);
         } elseif ($user->hasRole('manager')) {
-            $query->whereHas('user', function($q) use ($user) {
+            $query->whereHas('reportSubmission.user', function($q) use ($user) {
                 $q->where('gugus_mutu_id', $user->gugus_mutu_id);
             });
             $query->whereIn('approval_status', ['Pending', 'Approved', 'Rejected']);
@@ -35,7 +35,7 @@ class ApprovalController extends Controller
 
     public function approve(Request $request, $id)
     {
-        $report = ReportSubmission::findOrFail($id);
+        $activity = Activity::findOrFail($id);
         $user = Auth::user();
         if (!$user->hasRole(['manager', 'admin', 'super-admin'])) abort(403);
 
@@ -51,26 +51,27 @@ class ApprovalController extends Controller
             $updates['manager_approved_at'] = now();
         }
 
-        $report->update($updates);
+        $activity->update($updates);
 
-        return back()->with('success', 'Laporan/Rencana berhasil Disahkan.');
+        return back()->with('success', 'Kegiatan berhasil Disahkan.');
     }
 
     public function reject(Request $request, $id)
     {
         $request->validate(['reason' => 'required|string']);
-        $report = ReportSubmission::findOrFail($id);
+        $activity = Activity::findOrFail($id);
         $user = Auth::user();
 
         if (!$user->hasRole(['manager', 'admin', 'super-admin'])) abort(403);
 
-        $report->update([
+        $activity->update([
             'approval_status' => 'Rejected',
             'reviewer_notes' => $request->reason,
         ]);
 
-        return back()->with('success', 'Pengajuan berhasil ditolak.');
+        return back()->with('success', 'Kegiatan berhasil ditolak.');
     }
+
     public function bulkApprove(Request $request)
     {
         $request->validate(['submission_ids' => 'required|array']);
@@ -90,14 +91,14 @@ class ApprovalController extends Controller
             $updates['manager_approved_at'] = now();
         }
 
-        ReportSubmission::whereIn('id', $request->submission_ids)->update($updates);
+        Activity::whereIn('id', $request->submission_ids)->update($updates);
 
-        return back()->with('success', 'Semua laporan yang dipilih berhasil disahkan.');
+        return back()->with('success', 'Semua kegiatan yang dipilih berhasil disahkan.');
     }
 
     public function cancel(Request $request, $id)
     {
-        $report = ReportSubmission::findOrFail($id);
+        $activity = Activity::findOrFail($id);
         $user = Auth::user();
 
         if (!$user->hasRole(['manager', 'admin', 'super-admin'])) abort(403);
@@ -114,7 +115,7 @@ class ApprovalController extends Controller
             $updates['manager_approved_at'] = null;
         }
 
-        $report->update($updates);
+        $activity->update($updates);
 
         return back()->with('success', 'Status persetujuan berhasil dibatalkan (kembali ke Pending).');
     }

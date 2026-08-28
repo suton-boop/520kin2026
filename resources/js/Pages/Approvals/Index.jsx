@@ -89,6 +89,7 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama Staf</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Gugus Mutu</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Periode</th>
+                                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kegiatan</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status Pembacaan</th>
                                         <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Aksi</th>
                                     </tr>
@@ -105,9 +106,10 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                                         checked={selectedIds.includes(item.id)}
                                                     />
                                                 </td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{item.user?.name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap">{item.user?.gugus_mutu?.name}</td>
-                                                <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-700">{item.period?.month_year}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{item.report_submission?.user?.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap">{item.report_submission?.user?.gugus_mutu?.name}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap font-bold text-gray-700">{item.report_submission?.period?.month_year}</td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.task_name || item.nama_kegiatan_turunan}</td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <span className="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
                                                         {item.approval_status}

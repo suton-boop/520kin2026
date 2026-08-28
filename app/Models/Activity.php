@@ -36,6 +36,12 @@ class Activity extends Model
         'mitigasi',
         'percent_complete',
         'duration_days',
+        'approval_status',
+        'manager_id',
+        'admin_id',
+        'manager_approved_at',
+        'admin_approved_at',
+        'reviewer_notes',
     ];
 
     /**
@@ -67,6 +73,16 @@ class Activity extends Model
     public function reportSubmission()
     {
         return $this->belongsTo(ReportSubmission::class);
+    }
+
+    public function manager()
+    {
+        return $this->belongsTo(User::class, 'manager_id');
+    }
+
+    public function admin()
+    {
+        return $this->belongsTo(User::class, 'admin_id');
     }
 
     public function budget()
