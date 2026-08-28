@@ -5,20 +5,22 @@ import { DocumentArrowUpIcon, DocumentMagnifyingGlassIcon, ArrowPathIcon } from 
 import Modal from '@/Components/Modal';
 import Pagination from '@/Components/Pagination';
 
-export default function Index({ activities, userRole, allowImport, gugusMutus, filters }) {
+export default function Index({ activities, userRole, allowImport, gugusMutus, periods, filters }) {
     const [search, setSearch] = useState(filters?.search || '');
     const [gugusMutuId, setGugusMutuId] = useState(filters?.gugus_mutu_id || '');
     const [statusAkhir, setStatusAkhir] = useState(filters?.status_akhir || '');
+    const [periodId, setPeriodId] = useState(filters?.period_id || '');
 
     const handleFilter = (e) => {
         e.preventDefault();
-        router.get(route('reports.index'), { search, gugus_mutu_id: gugusMutuId, status_akhir: statusAkhir }, { preserveState: true, replace: true });
+        router.get(route('reports.index'), { search, gugus_mutu_id: gugusMutuId, status_akhir: statusAkhir, period_id: periodId }, { preserveState: true, replace: true });
     };
     
     const handleReset = () => {
         setSearch('');
         setGugusMutuId('');
         setStatusAkhir('');
+        setPeriodId('');
         router.get(route('reports.index'), {}, { preserveState: true, replace: true });
     };
     const { post } = useForm();
@@ -149,6 +151,16 @@ export default function Index({ activities, userRole, allowImport, gugusMutus, f
                                     ))}
                                 </select>
                             )}
+                                                        <select 
+                                className="border-gray-300 rounded text-sm px-3 py-2"
+                                value={periodId}
+                                onChange={e => setPeriodId(e.target.value)}
+                            >
+                                <option value="">Semua Periode</option>
+                                {periods && periods.map(p => (
+                                    <option key={p.id} value={p.id}>{p.month_year}</option>
+                                ))}
+                            </select>
                             <select 
                                 className="border-gray-300 rounded text-sm px-3 py-2"
                                 value={statusAkhir}
