@@ -56,14 +56,45 @@ class AnggaranController extends Controller
 
         // Only admins can see inactive ones? Or everyone sees inactive ones but dimmed?
         // Let's pass all to frontend, frontend handles display of active/inactive
-        $data = Anggaran::whereNull('parent_id')->with('children')->orderBy('id')->get();
+        $data = Anggaran::whereNull('parent_id')->with('children.children')->orderBy('id')->get();
         
         // Calculate percent and auto-sum from children
         $data->transform(function ($parent) {
+            
+            $parent->children->transform(function ($child) {
+                if ($child->children && $child->children->count() > 0) {
+                    $child->volume_realisasi = $child->children->sum('volume_realisasi');
+                    $child->anggaran_realisasi = $child->children->sum('anggaran_realisasi');
+                    $child->anggaran_alokasi = $child->children->sum('anggaran_alokasi');
+                }
+
+                $child->anggaran_persen = $child->anggaran_alokasi > 0 
+                    ? round(($child->anggaran_realisasi / $child->anggaran_alokasi) * 100, 1) 
+                    : 0;
+                if (!$child->kelengkapan) {
+                    $child->kelengkapan = array_fill(0, 12, true);
+                }
+
+                if ($child->children) {
+                    $child->children->transform(function ($grandchild) {
+                        $grandchild->anggaran_persen = $grandchild->anggaran_alokasi > 0 
+                            ? round(($grandchild->anggaran_realisasi / $grandchild->anggaran_alokasi) * 100, 1) 
+                            : 0;
+                        if (!$grandchild->kelengkapan) {
+                            $grandchild->kelengkapan = array_fill(0, 12, true);
+                        }
+                        return $grandchild;
+                    });
+                }
+                return $child;
+            });
+
             // Auto sum from children
-            $parent->volume_realisasi = $parent->children->sum('volume_realisasi');
-            $parent->anggaran_realisasi = $parent->children->sum('anggaran_realisasi');
-            $parent->anggaran_alokasi = $parent->children->sum('anggaran_alokasi');
+            if ($parent->children && $parent->children->count() > 0) {
+                $parent->volume_realisasi = $parent->children->sum('volume_realisasi');
+                $parent->anggaran_realisasi = $parent->children->sum('anggaran_realisasi');
+                $parent->anggaran_alokasi = $parent->children->sum('anggaran_alokasi');
+            }
 
             $parent->anggaran_persen = $parent->anggaran_alokasi > 0 
                 ? round(($parent->anggaran_realisasi / $parent->anggaran_alokasi) * 100, 1) 
@@ -73,15 +104,6 @@ class AnggaranController extends Controller
                  $parent->kelengkapan = array_fill(0, 12, true);
             }
                 
-            $parent->children->transform(function ($child) {
-                $child->anggaran_persen = $child->anggaran_alokasi > 0 
-                    ? round(($child->anggaran_realisasi / $child->anggaran_alokasi) * 100, 1) 
-                    : 0;
-                if (!$child->kelengkapan) {
-                    $child->kelengkapan = array_fill(0, 12, true);
-                }
-                return $child;
-            });
             return $parent;
         });
 

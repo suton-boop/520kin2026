@@ -372,48 +372,110 @@ function IndexInner({ auth, anggaranData, isAdmin }) {
 
                                                 {/* Child Rows */}
                                                 {expandedRows[parent.id] && parent.children?.map((child, childIdx) => (
-                                                    <tr key={child.id} className={`border-b border-gray-50 transition-all group/child hover:bg-blue-50/10 ${!child.is_active ? 'opacity-50 grayscale' : ''}`}>
-                                                        <td className="px-2 py-3 border-r border-gray-100 text-center"></td>
-                                                        <td className="px-4 py-3 border-r border-gray-100 pl-8">
-                                                            <div className="flex justify-between items-start relative group/actions">
-                                                                <div className="flex">
-                                                                    <span className="text-gray-400 mr-2 w-4 text-right">{childIdx + 1}</span>
-                                                                    <div>
-                                                                        <p className="font-semibold text-gray-800">{child.kode} {child.nomenklatur}</p>
-                                                                    </div>
-                                                                </div>
-                                                                {isAdmin && (
-                                                                    <div className="absolute right-0 top-0 flex space-x-1 opacity-0 group-hover/actions:opacity-100 transition-opacity bg-white pl-2">
-                                                                        <button onClick={() => openEditModal(child)} className="text-amber-500 hover:text-amber-700"><PencilSquareIcon className="w-4 h-4"/></button>
-                                                                        <button onClick={() => openDeleteModal(child.id)} className="text-red-500 hover:text-red-700"><TrashIcon className="w-4 h-4"/></button>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-4 py-3 border-r border-gray-100 text-center text-gray-600">{child.satuan}</td>
-                                                        <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600">{child.volume}</td>
-                                                        <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600">{child.volume_realisasi}</td>
-                                                        <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600 whitespace-nowrap">{formatShortRp(child.anggaran_alokasi)}</td>
-                                                        <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600 whitespace-nowrap">{formatShortRp(child.anggaran_realisasi)}</td>
-                                                        <td className="px-2 py-3 border-r border-gray-100 text-center text-gray-600">{Number(child.anggaran_persen).toFixed(1)}%</td>
-                                                        <td className="px-4 py-3 border-r border-gray-100 min-w-[120px]">
-                                                            <div className="flex items-center space-x-2">
-                                                                <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
-                                                                    <div className={`h-1.5 rounded-full ${child.pelaksanaan >= 100 ? 'bg-emerald-500' : child.pelaksanaan > 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.max(0, child.pelaksanaan))}%` }}></div>
-                                                                </div>
-                                                                <span className="text-[10px] text-gray-500 whitespace-nowrap w-8 text-right">{child.pelaksanaan}%</span>
-                                                            </div>
-                                                        </td>
-                                                        {months.map((m, idx) => (
-                                                            <td key={idx} className="px-1 py-3 text-center border-r border-gray-50">
-                                                                {child.kelengkapan && child.kelengkapan[idx] ? (
-                                                                    <PlusCircleIcon className="w-4 h-4 text-emerald-400 mx-auto" />
-                                                                ) : (
-                                                                    <XCircleIcon className="w-4 h-4 text-red-400 mx-auto opacity-50" />
+                                                    <React.Fragment key={child.id}>
+                                                        <tr className={`border-b border-gray-50 transition-all group/child hover:bg-blue-50/10 ${!child.is_active ? 'opacity-50 grayscale' : ''}`}>
+                                                            <td className="px-2 py-3 border-r border-gray-100 text-center">
+                                                                {child.children && child.children.length > 0 && (
+                                                                    <button
+                                                                        onClick={() => toggleRow(child.id)}
+                                                                        className="text-blue-600 hover:text-blue-800 focus:outline-none"
+                                                                    >
+                                                                        {expandedRows[child.id] ? (
+                                                                            <MinusCircleIcon className="w-4 h-4 mx-auto" />
+                                                                        ) : (
+                                                                            <PlusCircleIcon className="w-4 h-4 text-blue-500 bg-white rounded-full border-none mx-auto" />
+                                                                        )}
+                                                                    </button>
                                                                 )}
                                                             </td>
+                                                            <td className="px-4 py-3 border-r border-gray-100 pl-8">
+                                                                <div className="flex justify-between items-start relative group/actions">
+                                                                    <div className="flex">
+                                                                        <span className="text-gray-400 mr-2 w-4 text-right">{childIdx + 1}</span>
+                                                                        <div>
+                                                                            <p className="font-semibold text-gray-800">{child.kode} {child.nomenklatur}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                    {isAdmin && (
+                                                                        <div className="absolute right-0 top-0 flex space-x-1 opacity-0 group-hover/actions:opacity-100 transition-opacity bg-white pl-2">
+                                                                            <button onClick={() => openAddModal(child.id)} className="text-green-500 hover:text-green-700" title="Tambah Rincian"><PlusIcon className="w-4 h-4"/></button>
+                                                                            <button onClick={() => openEditModal(child)} className="text-amber-500 hover:text-amber-700"><PencilSquareIcon className="w-4 h-4"/></button>
+                                                                            <button onClick={() => openDeleteModal(child.id)} className="text-red-500 hover:text-red-700"><TrashIcon className="w-4 h-4"/></button>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </td>
+                                                            <td className="px-4 py-3 border-r border-gray-100 text-center text-gray-600">{child.satuan}</td>
+                                                            <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600">{child.volume}</td>
+                                                            <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600">{child.volume_realisasi}</td>
+                                                            <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600 whitespace-nowrap">{formatShortRp(child.anggaran_alokasi)}</td>
+                                                            <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-600 whitespace-nowrap">{formatShortRp(child.anggaran_realisasi)}</td>
+                                                            <td className="px-2 py-3 border-r border-gray-100 text-center text-gray-600">{Number(child.anggaran_persen).toFixed(1)}%</td>
+                                                            <td className="px-4 py-3 border-r border-gray-100 min-w-[120px]">
+                                                                <div className="flex items-center space-x-2">
+                                                                    <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                                                        <div className={`h-1.5 rounded-full ${child.pelaksanaan >= 100 ? 'bg-emerald-500' : child.pelaksanaan > 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.max(0, child.pelaksanaan))}%` }}></div>
+                                                                    </div>
+                                                                    <span className="text-[10px] text-gray-500 whitespace-nowrap w-8 text-right">{child.pelaksanaan}%</span>
+                                                                </div>
+                                                            </td>
+                                                            {months.map((m, idx) => (
+                                                                <td key={idx} className="px-1 py-3 text-center border-r border-gray-50">
+                                                                    {child.kelengkapan && child.kelengkapan[idx] ? (
+                                                                        <PlusCircleIcon className="w-4 h-4 text-emerald-400 mx-auto" />
+                                                                    ) : (
+                                                                        <XCircleIcon className="w-4 h-4 text-red-400 mx-auto opacity-50" />
+                                                                    )}
+                                                                </td>
+                                                            ))}
+                                                        </tr>
+
+                                                        {/* Grandchild Rows */}
+                                                        {expandedRows[child.id] && child.children?.map((grandchild, gcIdx) => (
+                                                            <tr key={grandchild.id} className={`border-b border-gray-50 transition-all group/grandchild bg-gray-50/50 hover:bg-gray-100/50 ${!grandchild.is_active ? 'opacity-50 grayscale' : ''}`}>
+                                                                <td className="px-2 py-3 border-r border-gray-100 text-center"></td>
+                                                                <td className="px-4 py-3 border-r border-gray-100 pl-16">
+                                                                    <div className="flex justify-between items-start relative group/actions">
+                                                                        <div className="flex">
+                                                                            <span className="text-gray-400 mr-2 w-6 text-right text-xs mt-1">{childIdx + 1}.{gcIdx + 1}</span>
+                                                                            <div>
+                                                                                <p className="font-semibold text-gray-600 text-sm">{grandchild.kode} {grandchild.nomenklatur}</p>
+                                                                            </div>
+                                                                        </div>
+                                                                        {isAdmin && (
+                                                                            <div className="absolute right-0 top-0 flex space-x-1 opacity-0 group-hover/actions:opacity-100 transition-opacity bg-transparent pl-2">
+                                                                                <button onClick={() => openEditModal(grandchild)} className="text-amber-500 hover:text-amber-700"><PencilSquareIcon className="w-4 h-4"/></button>
+                                                                                <button onClick={() => openDeleteModal(grandchild.id)} className="text-red-500 hover:text-red-700"><TrashIcon className="w-4 h-4"/></button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-4 py-3 border-r border-gray-100 text-center text-gray-500 text-sm">{grandchild.satuan}</td>
+                                                                <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-500 text-sm">{grandchild.volume}</td>
+                                                                <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-500 text-sm">{grandchild.volume_realisasi}</td>
+                                                                <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-500 text-sm whitespace-nowrap">{formatShortRp(grandchild.anggaran_alokasi)}</td>
+                                                                <td className="px-2 py-3 border-r border-gray-100 text-right text-gray-500 text-sm whitespace-nowrap">{formatShortRp(grandchild.anggaran_realisasi)}</td>
+                                                                <td className="px-2 py-3 border-r border-gray-100 text-center text-gray-500 text-sm">{Number(grandchild.anggaran_persen).toFixed(1)}%</td>
+                                                                <td className="px-4 py-3 border-r border-gray-100 min-w-[120px]">
+                                                                    <div className="flex items-center space-x-2">
+                                                                        <div className="w-full bg-gray-200 rounded-full h-1.5 overflow-hidden">
+                                                                            <div className={`h-1.5 rounded-full ${grandchild.pelaksanaan >= 100 ? 'bg-emerald-500' : grandchild.pelaksanaan > 50 ? 'bg-amber-500' : 'bg-red-500'}`} style={{ width: `${Math.min(100, Math.max(0, grandchild.pelaksanaan))}%` }}></div>
+                                                                        </div>
+                                                                        <span className="text-[10px] text-gray-500 whitespace-nowrap w-8 text-right">{grandchild.pelaksanaan}%</span>
+                                                                    </div>
+                                                                </td>
+                                                                {months.map((m, idx) => (
+                                                                    <td key={idx} className="px-1 py-3 text-center border-r border-gray-50">
+                                                                        {grandchild.kelengkapan && grandchild.kelengkapan[idx] ? (
+                                                                            <PlusCircleIcon className="w-4 h-4 text-emerald-400 mx-auto" />
+                                                                        ) : (
+                                                                            <XCircleIcon className="w-4 h-4 text-red-400 mx-auto opacity-50" />
+                                                                        )}
+                                                                    </td>
+                                                                ))}
+                                                            </tr>
                                                         ))}
-                                                    </tr>
+                                                    </React.Fragment>
                                                 ))}
                                             </React.Fragment>
                                         ))}

@@ -15,22 +15,31 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $year = $request->input('year', 2026);
-        return $this->getDashboardData($request, $user, $year, 'Dashboard');
+        $month = $request->input('month');
+        $gugusMutuId = $request->input('gugus_mutu_id');
+        return $this->getDashboardData($request, $user, $year, $month, $gugusMutuId, 'Dashboard');
     }
 
     public function publicDashboard(Request $request)
     {
         $year = $request->input('year', 2026);
-        return $this->getDashboardData($request, null, $year, 'Welcome');
+        $month = $request->input('month');
+        $gugusMutuId = $request->input('gugus_mutu_id');
+        return $this->getDashboardData($request, null, $year, $month, $gugusMutuId, 'Welcome');
     }
 
-    private function getDashboardData(Request $request, $user, $year, $component)
+    private function getDashboardData(Request $request, $user, $year, $month, $gugusMutuId, $component)
     {
         $today = Carbon::now();
 
         $reportQuery = ReportSubmission::with(['user.gugusMutu', 'period'])
-            ->whereHas('period', function ($q) use ($year) {
-                $q->where('month_year', 'like', "%{$year}%");
+            ->whereHas('period', function ($q) use ($year, $month) {
+                if ($month) {
+                    $monthPadded = str_pad($month, 2, '0', STR_PAD_LEFT);
+                    $q->where('month_year', "{$monthPadded}-{$year}");
+                } else {
+                    $q->where('month_year', 'like', "%{$year}%");
+                }
             });
 
         if ($user) {
@@ -41,10 +50,16 @@ class DashboardController extends Controller
             }
         }
 
+        if ($gugusMutuId) {
+             $reportQuery->whereHas('user', function($q) use ($gugusMutuId) {
+                  $q->where('gugus_mutu_id', $gugusMutuId);
+             });
+        }
+
         $submissions = $reportQuery->get();
         $submissionIds = $submissions->pluck('id');
 
-        $allActivities = Activity::with('budget')->whereIn('report_submission_id', $submissionIds)
+        $allActivities = Activity::with(['budget', 'reportSubmission.user.gugusMutu', 'reportSubmission.period'])->whereIn('report_submission_id', $submissionIds)
             ->orderBy('kode_pmo', 'asc')
             ->get();
 
@@ -124,7 +139,14 @@ class DashboardController extends Controller
             ];
         }
 
+        $divisions = AppModelsGugusMutu::all();
+        $periods = AppModelsPeriod::all();
+
         return Inertia::render($component, [
+            'divisions' => $divisions,
+            'periods' => $periods,
+            'selectedMonth' => $month,
+            'selectedDivision' => $gugusMutuId,
             'metrics' => [
                 'total_terkirim' => $submissions->whereIn('approval_status', ['Draft', 'Pending'])->count(),
                 'total_disetujui' => $submissions->where('approval_status', 'Approved')->count(),

@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, router } from '@inertiajs/react';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { InformationCircleIcon, CheckCircleIcon, ExclamationTriangleIcon, LightBulbIcon, BanknotesIcon } from '@heroicons/react/24/solid';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout';
 
-export default function Dashboard({ auth, activities = [], lateTasks = [], invalidBudgets = [], monthlyStats = [], budgetStats = [], selectedYear = 2026, metrics = { total_terkirim: 0, total_disetujui: 0, total_ditolak: 0, anggaran: { total_alokasi: 0, total_realisasi: 0, persentase: 0 } } }) {
+export default function Dashboard({ auth, activities = [], lateTasks = [], invalidBudgets = [], monthlyStats = [], budgetStats = [], selectedYear = 2026, divisions = [], periods = [], selectedMonth = '', selectedDivision = '', metrics = { total_terkirim: 0, total_disetujui: 0, total_ditolak: 0, anggaran: { total_alokasi: 0, total_realisasi: 0, persentase: 0 } } }) {
     
     const [activeMainTab, setActiveMainTab] = useState('Kinerja');
     const [activeSubTab, setActiveSubTab] = useState('Rincian Task');
@@ -62,9 +62,46 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
             <main className="max-w-screen-2xl mx-auto p-4 md:p-10 space-y-12 w-full">
 
                 <div className="bg-white p-6 md:p-12 rounded-[40px] shadow-sm border border-gray-100 flex flex-col items-center">
-                    <div className="flex space-x-6 mb-16 bg-gray-50/80 p-2.5 rounded-full shadow-inner border border-gray-200">
-                        <button onClick={() => setActiveMainTab('Kinerja')} className={`px-16 py-4 rounded-full text-xs font-black transition-all ${activeMainTab === 'Kinerja' ? 'bg-amber-400 text-gray-900 shadow-2xl scale-105' : 'text-gray-400 hover:text-gray-600 hover:bg-white'}`}>KINERJA</button>
-                        <button onClick={() => setActiveMainTab('Anggaran')} className={`px-16 py-4 rounded-full text-xs font-black transition-all ${activeMainTab === 'Anggaran' ? 'bg-amber-400 text-gray-900 shadow-2xl scale-105' : 'text-gray-400 hover:text-gray-600 hover:bg-white'}`}>ANGGARAN</button>
+                    <div className="flex flex-col md:flex-row justify-between items-center w-full mb-16 gap-6">
+                        <div className="w-1/3"></div>
+                        <div className="flex space-x-6 bg-gray-50/80 p-2.5 rounded-full shadow-inner border border-gray-200 mx-auto">
+                            <button onClick={() => setActiveMainTab('Kinerja')} className={`px-16 py-4 rounded-full text-xs font-black transition-all ${activeMainTab === 'Kinerja' ? 'bg-amber-400 text-gray-900 shadow-2xl scale-105' : 'text-gray-400 hover:text-gray-600 hover:bg-white'}`}>KINERJA</button>
+                            <button onClick={() => setActiveMainTab('Anggaran')} className={`px-16 py-4 rounded-full text-xs font-black transition-all ${activeMainTab === 'Anggaran' ? 'bg-amber-400 text-gray-900 shadow-2xl scale-105' : 'text-gray-400 hover:text-gray-600 hover:bg-white'}`}>ANGGARAN</button>
+                        </div>
+                        <div className="flex space-x-4 w-1/3 justify-end">
+                            <select 
+                                className="bg-white border border-gray-200 text-gray-700 text-xs rounded-2xl focus:ring-amber-500 focus:border-amber-500 block p-3 font-bold shadow-sm"
+                                value={selectedDivision || ''}
+                                onChange={(e) => {
+                                    router.get(window.location.pathname, { 
+                                        year: selectedYear, 
+                                        month: selectedMonth, 
+                                        gugus_mutu_id: e.target.value 
+                                    }, { preserveState: true });
+                                }}
+                            >
+                                <option value="">SEMUA DIVISI</option>
+                                {divisions?.map(d => (
+                                    <option key={d.id} value={d.id}>{d.name.toUpperCase()}</option>
+                                ))}
+                            </select>
+                            <select 
+                                className="bg-white border border-gray-200 text-gray-700 text-xs rounded-2xl focus:ring-amber-500 focus:border-amber-500 block p-3 font-bold shadow-sm"
+                                value={selectedMonth || ''}
+                                onChange={(e) => {
+                                    router.get(window.location.pathname, { 
+                                        year: selectedYear, 
+                                        month: e.target.value, 
+                                        gugus_mutu_id: selectedDivision 
+                                    }, { preserveState: true });
+                                }}
+                            >
+                                <option value="">SEMUA BULAN</option>
+                                {[1,2,3,4,5,6,7,8,9,10,11,12].map(m => (
+                                    <option key={m} value={m}>BULAN {m}</option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
                     <div className="grid grid-cols-1 lg:grid-cols-4 gap-12 w-full">
