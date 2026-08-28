@@ -73,6 +73,12 @@ class ReportController extends Controller
             $query->where('status_akhir', $request->status_akhir);
         }
 
+        if ($request->period_id) {
+            $query->whereHas('reportSubmission', function($q) use ($request) {
+                $q->where('period_id', $request->period_id);
+            });
+        }
+
         $activities = $query->leftJoin('report_submissions', 'activities.report_submission_id', '=', 'report_submissions.id')
                             ->select('activities.*')
                             ->orderBy('report_submissions.created_at', 'desc')
@@ -95,7 +101,8 @@ class ReportController extends Controller
             'userRole' => $user->roles->pluck('name')->first(),
             'allowImport' => $allowImport,
             'gugusMutus' => $gugusMutus,
-            'filters' => $request->only(['search', 'gugus_mutu_id', 'status_akhir']),
+            'periods' => \App\Models\Period::orderBy('id', 'desc')->get(),
+            'filters' => $request->only(['search', 'gugus_mutu_id', 'status_akhir', 'period_id']),
         ]);
 
     }
