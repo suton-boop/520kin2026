@@ -19,6 +19,12 @@ export default function Index({ auth, pending_approvals, userRole }) {
         }
     };
 
+    const handleCancel = (id) => {
+        if (confirm('Apakah Anda yakin ingin membatalkan persetujuan ini dan mengembalikannya ke status Pending?')) {
+            router.post('/approvals/' + id + '/cancel');
+        }
+    };
+
     const handleSelectAll = (e) => {
         if (e.target.checked) {
             setSelectedIds((pending_approvals.data || pending_approvals).map(item => item.id));
@@ -113,8 +119,16 @@ export default function Index({ auth, pending_approvals, userRole }) {
                                                             <button onClick={() => handleApprove(item.id)} className="px-3 py-1 bg-green-500 text-white rounded shadow hover:bg-green-600 transition-colors">Setuju</button>
                                                             <button onClick={() => handleReject(item.id)} className="px-3 py-1 bg-red-500 text-white rounded shadow hover:bg-red-600 transition-colors">Tolak</button>
                                                         </>
+                                                    ) : item.approval_status === 'Approved' ? (
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-gray-400 italic text-xs">Disetujui</span>
+                                                            <button onClick={() => handleCancel(item.id)} className="px-2 py-1 bg-gray-500 text-white text-xs rounded shadow hover:bg-gray-600 transition-colors">Batal</button>
+                                                        </div>
                                                     ) : (
-                                                        <span className="text-gray-400 italic">Sudah direview</span>
+                                                        <div className="flex items-center space-x-2">
+                                                            <span className="text-gray-400 italic text-xs">Ditolak</span>
+                                                            <button onClick={() => handleCancel(item.id)} className="px-2 py-1 bg-gray-500 text-white text-xs rounded shadow hover:bg-gray-600 transition-colors">Batal</button>
+                                                        </div>
                                                     )}
                                                 </td>
                                             </tr>

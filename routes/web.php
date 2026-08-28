@@ -38,6 +38,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/approvals/bulk-approve', [\App\Http\Controllers\ApprovalController::class, 'bulkApprove'])->name('approvals.bulk_approve');
     Route::post('/approvals/{id}/approve', [\App\Http\Controllers\ApprovalController::class, 'approve'])->name('approvals.approve');
     Route::post('/approvals/{id}/reject', [\App\Http\Controllers\ApprovalController::class, 'reject'])->name('approvals.reject');
+    Route::post('/approvals/{id}/cancel', [\App\Http\Controllers\ApprovalController::class, 'cancel'])->name('approvals.cancel');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

@@ -94,7 +94,28 @@ class ApprovalController extends Controller
 
         return back()->with('success', 'Semua laporan yang dipilih berhasil disahkan.');
     }
+
+    public function cancel(Request $request, $id)
+    {
+        $report = ReportSubmission::findOrFail($id);
+        $user = Auth::user();
+
+        if (!$user->hasRole(['manager', 'admin', 'super-admin'])) abort(403);
+
+        $updates = [
+            'approval_status' => 'Pending',
+        ];
+
+        if ($user->hasRole(['admin', 'super-admin'])) {
+            $updates['admin_id'] = null;
+            $updates['admin_approved_at'] = null;
+        } else {
+            $updates['manager_id'] = null;
+            $updates['manager_approved_at'] = null;
+        }
+
+        $report->update($updates);
+
+        return back()->with('success', 'Status persetujuan berhasil dibatalkan (kembali ke Pending).');
+    }
 }
-
-
-
