@@ -132,6 +132,7 @@ class DashboardController extends Controller
         // Monthly Budget Stats (Detailed)
         $budgetStats = [];
         $totalAlokasiGlobal = \App\Models\Anggaran::sum('anggaran_alokasi');
+        $totalRealisasiGlobal = \App\Models\Anggaran::sum('anggaran_realisasi');
         
         // CUMULATIVE calculation
         $cumulativeReal = 0;
