@@ -139,8 +139,8 @@ class DashboardController extends Controller
             ];
         }
 
-        $divisions = AppModelsGugusMutu::all();
-        $periods = AppModelsPeriod::all();
+        $divisions = \App\Models\GugusMutu::all();
+        $periods = \App\Models\Period::all();
 
         return Inertia::render($component, [
             'divisions' => $divisions,
