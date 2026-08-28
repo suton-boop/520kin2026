@@ -338,7 +338,6 @@ export default function Show({ report, userRole, allowImport, canEdit, projects 
                               <option value="Selesai">Selesai</option>
                           </select>
                         </div>
-                        </div>
                         <div>
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">Nominal Serapan Anggaran (Rp)</label>
                             <input 
