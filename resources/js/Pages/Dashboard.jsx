@@ -53,7 +53,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
     const brandColor = '#FBBF24';
     const realisasiColor = '#9CA3AF';
     const budgetColor = '#3B82F6';
-    const realBudgetColor = '#EF4444';
+    const realBudgetColor = "#10b981";
 
     return (
         <AuthenticatedLayout>
@@ -151,7 +151,7 @@ export default function Dashboard({ auth, activities = [], lateTasks = [], inval
                                                 <YAxis hide />
                                                 <Tooltip contentStyle={{ borderRadius: '24px', border: 'none', boxShadow: '0 30px 60px -15px rgba(0,0,0,0.3)', fontWeight: 'bold' }} />
                                                 <Area type="monotone" dataKey="target" stroke={budgetColor} strokeWidth={4} fillOpacity={1} fill="url(#colorTarget)" />
-                                                <Area type="monotone" dataKey="realisasi" stroke={realBudgetColor} strokeWidth={5} fillOpacity={1} fill="url(#colorReal)" / type="monotone" dot={{ r: 5, fill: "#ef4444", strokeWidth: 2 }} activeDot={{ r: 7 }} />
+                                                <Area type="monotone" dataKey="realisasi" stroke={realBudgetColor} strokeWidth={5} fillOpacity={1} fill="url(#colorReal)"  dot={{ r: 5, fill: "#10b981", strokeWidth: 2 }} activeDot={{ r: 7 }} />
                                             </AreaChart>
                                         </ResponsiveContainer>
                                     </div>
