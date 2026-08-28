@@ -18,22 +18,36 @@ class GugusMutuReportController extends Controller
 
         $periods = Period::orderBy('id', 'desc')->get();
 
-        $gugusMutus = GugusMutu::with(['users.reportSubmissions' => function ($query) use ($periodId) {
-            if ($periodId && $periodId !== 'all') {
-                $query->where('period_id', $periodId);
-            }
-            $query->withCount('activities')
-                  ->withCount(['activities as activities_completed_count' => function($q) { $q->where('status_akhir', 'Selesai')->orWhere('percent_complete', '>=', 100); }]);
-        }])->get();
+        $gugusMutus = GugusMutu::all();
 
-        $reportData = $gugusMutus->map(function ($gugus) {
+        // Get all activities for the selected period
+        $activitiesQuery = AppModelsActivity::with(['projectTask.project', 'reportSubmission.user']);
+        
+        if ($periodId && $periodId !== 'all') {
+            $activitiesQuery->whereHas('reportSubmission', function($q) use ($periodId) {
+                $q->where('period_id', $periodId);
+            });
+        }
+        
+        $activities = $activitiesQuery->get();
+
+        $reportData = $gugusMutus->map(function ($gugus) use ($activities) {
             $totalTarget = 0;
             $totalCapaian = 0;
             
-            foreach ($gugus->users as $user) {
-                foreach ($user->reportSubmissions as $submission) {
-                    $totalTarget += $submission->activities_count ?? 0;
-                    $totalCapaian += $submission->activities_completed_count ?? 0;
+            foreach ($activities as $act) {
+                $actGmId = null;
+                if ($act->projectTask && $act->projectTask->project) {
+                    $actGmId = $act->projectTask->project->gugus_mutu_id;
+                } elseif ($act->reportSubmission && $act->reportSubmission->user) {
+                    $actGmId = $act->reportSubmission->user->gugus_mutu_id;
+                }
+                
+                if ($actGmId == $gugus->id) {
+                    $totalTarget++;
+                    if ($act->status_akhir === 'Selesai' || $act->percent_complete >= 100) {
+                        $totalCapaian++;
+                    }
                 }
             }
 
