@@ -21,7 +21,7 @@ class GugusMutuReportController extends Controller
         $gugusMutus = GugusMutu::all();
 
         // Get all activities for the selected period
-        $activitiesQuery = AppModelsActivity::with(['projectTask.project', 'reportSubmission.user']);
+        $activitiesQuery = \App\Models\Activity::with(['projectTask.project', 'reportSubmission.user']);
         
         if ($periodId && $periodId !== 'all') {
             $activitiesQuery->whereHas('reportSubmission', function($q) use ($periodId) {
